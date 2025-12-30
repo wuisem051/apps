@@ -137,7 +137,7 @@ export default function Admin() {
     if (editingGameId) {
       setGames((prev) => prev.map((g) => (g.id === editingGameId ? { ...(g as Game), ...(gameForm as Game) } : g)));
     } else {
-      const newGame: Game = { id: generateId('game-'), ...(gameForm as Game) };
+      const newGame: Game = { ...(gameForm as Game), id: generateId('game-') };
       setGames((prev) => [newGame, ...prev]);
     }
     setShowGameForm(false);
@@ -185,7 +185,7 @@ export default function Admin() {
     if (editingAppId) {
       setApps((prev) => prev.map((a) => (a.id === editingAppId ? { ...(a as AppItem), ...(appForm as AppItem) } : a)));
     } else {
-      const newApp: AppItem = { id: generateId('app-'), ...(appForm as AppItem) };
+      const newApp: AppItem = { ...(appForm as AppItem), id: generateId('app-') };
       setApps((prev) => [newApp, ...prev]);
     }
     setShowAppForm(false);
@@ -241,7 +241,7 @@ export default function Admin() {
     return (
       <div className="min-h-screen bg-slate-50">
         <Header />
-        
+
         <main className="py-16">
           <div className="max-w-md mx-auto px-4">
             <div className="bg-white rounded-lg border border-slate-300 p-8">
@@ -322,7 +322,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
-      
+
       <main className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">

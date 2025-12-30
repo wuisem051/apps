@@ -17,7 +17,7 @@ const AdBanner: React.FC<AdBannerProps> = ({
 
   useEffect(() => {
     // Adsterra banner ad implementation
-    if (adRef.current && window.atOptions) {
+    if (adRef.current && (window as any).atOptions) {
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = `//www.topcreativeformat.com/${zoneId}/invoke.js`;
