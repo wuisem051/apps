@@ -7,17 +7,17 @@ interface AdBannerProps {
   className?: string;
 }
 
-const AdBanner: React.FC<AdBannerProps> = ({ 
-  zoneId, 
-  width = 728, 
-  height = 90, 
-  className = '' 
+const AdBanner: React.FC<AdBannerProps> = ({
+  zoneId,
+  width = 728,
+  height = 90,
+  className = ''
 }) => {
   const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Adsterra banner ad implementation
-    if (adRef.current && (window as any).atOptions) {
+    if (adRef.current && window.atOptions) {
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = `//www.topcreativeformat.com/${zoneId}/invoke.js`;
@@ -28,7 +28,7 @@ const AdBanner: React.FC<AdBannerProps> = ({
 
   return (
     <div className={`flex justify-center items-center bg-slate-50 border border-slate-200 rounded-lg ${className}`}>
-      <div 
+      <div
         ref={adRef}
         style={{ width: `${width}px`, height: `${height}px` }}
         className="flex items-center justify-center"
