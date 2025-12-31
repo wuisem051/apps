@@ -11,36 +11,57 @@ import Apps from './src/pages/Apps';
 import Categories from './src/pages/Categories';
 import Admin from './src/pages/Admin';
 import GameDetail from './src/pages/GameDetail';
+import StaticPage from './src/pages/StaticPage';
 import NotFound from './src/pages/NotFound';
 
 import { SiteProvider } from './src/context/SiteContext';
+import { ContentProvider } from './src/context/ContentContext';
+import { AnalyticsProvider, useAnalytics } from './src/context/AnalyticsContext';
+import { useLocation } from 'react-router-dom';
+
+const PageViewTracker = () => {
+  const { trackEvent } = useAnalytics();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    trackEvent('visit');
+  }, [location.pathname]);
+
+  return null;
+};
 
 const App: React.FC = () => {
   return (
-    <SiteProvider>
-      <Theme appearance="inherit" radius="large" scaling="100%">
-        <Router>
-          <main className="min-h-screen font-inter">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/games" element={<Games />} />
-              <Route path="/apps" element={<Apps />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/dev" element={<Admin />} />
-              <Route path="/game/:id" element={<GameDetail />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              newestOnTop
-              closeOnClick
-              pauseOnHover
-            />
-          </main>
-        </Router>
-      </Theme>
-    </SiteProvider>
+    <AnalyticsProvider>
+      <ContentProvider>
+        <SiteProvider>
+          <Theme appearance="inherit" radius="large" scaling="100%">
+            <Router>
+              <PageViewTracker />
+              <main className="min-h-screen font-inter">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/games" element={<Games />} />
+                  <Route path="/apps" element={<Apps />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/dev" element={<Admin />} />
+                  <Route path="/game/:id" element={<GameDetail />} />
+                  <Route path="/p/:slug" element={<StaticPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <ToastContainer
+                  position="top-right"
+                  autoClose={3000}
+                  newestOnTop
+                  closeOnClick
+                  pauseOnHover
+                />
+              </main>
+            </Router>
+          </Theme>
+        </SiteProvider>
+      </ContentProvider>
+    </AnalyticsProvider>
   );
 }
 

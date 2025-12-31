@@ -5,22 +5,28 @@ import GameCard from '../components/GameCard';
 import CategoryFilter from '../components/CategoryFilter';
 import AdBanner from '../components/AdBanner';
 import { Filter, Grid, List } from 'lucide-react';
-import { ALL_GAMES } from '../data/mockData';
+import { useContent } from '../context/ContentContext';
 
 export default function Games() {
+  const { games } = useContent();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState('popular');
-
-  const gamesOnly = ALL_GAMES.filter(item =>
-    !['Social', 'Music'].includes(item.category)
-  );
+  const [sortBy, setSortBy] = useState('newest');
 
   const categories = ['Action', 'Puzzle', 'Casual', 'Strategy', 'Racing', 'Sports'];
 
-  const filteredGames = selectedCategory === 'all'
-    ? gamesOnly
-    : gamesOnly.filter(game => game.category === selectedCategory);
+  const filteredGames = games
+    .filter(game => selectedCategory === 'all' || game.category === selectedCategory)
+    .sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'downloads') {
+        const valA = parseFloat(a.downloads.replace(/[^0-9.]/g, '')) || 0;
+        const valB = parseFloat(b.downloads.replace(/[^0-9.]/g, '')) || 0;
+        return valB - valA;
+      }
+      if (sortBy === 'newest') return 0; // Already prepended in context, so order 0 is fine if we don't reverse it elsewhere
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-slate-50">

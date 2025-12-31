@@ -5,9 +5,12 @@ import Footer from '../components/Footer';
 import DownloadFlow from '../components/DownloadFlow';
 import AdBanner from '../components/AdBanner';
 import { Star, Download, Users, Calendar, Smartphone, HardDrive, MessageSquare, Send } from 'lucide-react';
-import { ALL_GAMES } from '../data/mockData';
+import { useContent } from '../context/ContentContext';
+import { useAnalytics } from '../context/AnalyticsContext';
 
 export default function GameDetail() {
+  const { games, apps } = useContent();
+  const { trackEvent } = useAnalytics();
   const { id } = useParams();
   const [showDownloadFlow, setShowDownloadFlow] = useState(false);
   const [reviews, setReviews] = useState([
@@ -16,29 +19,19 @@ export default function GameDetail() {
   ]);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
 
-  // Get current game from ALL_GAMES or fallback
-  const game = ALL_GAMES.find(g => g.id === id) || {
-    id: id || '1',
-    title: 'Shadow Fight 3',
-    description: 'Shadow Fight 3 is an epic fighting game that combines RPG elements with classical fighting mechanics.',
-    longDescription: 'Shadow Fight 3 continues the story of the Shadow Fight universe with enhanced graphics and gameplay. Battle through multiple chapters, collect weapons and armor, and master different fighting styles.',
-    image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=600&fit=crop',
-    screenshots: [
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&h=300&fit=crop'
-    ],
-    rating: 4.5,
-    downloads: '10M+',
-    size: '125MB',
-    version: '1.25.8',
-    category: 'Action',
-    developer: 'Nekki',
-    requirements: 'Android 5.0+',
-    downloadUrl: '#'
-  };
+  // Combine games and apps to search for the specific item
+  const allContent = [...games, ...apps.map(a => ({ ...a, category: a.appCategory || 'App' }))];
 
-  const relatedGames = ALL_GAMES.filter(g => g.category === game.category && g.id !== id).slice(0, 3);
+  // Get current item from combined content
+  const game = allContent.find(g => g.id === id) || (games[0] || allContent[0]);
+
+  useEffect(() => {
+    if (game) {
+      trackEvent('view', { itemId: game.id, itemTitle: game.title });
+    }
+  }, [game.id]);
+
+  const relatedGames = allContent.filter(g => g.category === game.category && g.id !== id).slice(0, 3);
 
   const handleDownloadClick = () => {
     setShowDownloadFlow(true);

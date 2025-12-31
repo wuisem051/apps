@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useSiteSettings } from '../context/SiteContext';
+import { useAnalytics } from '../context/AnalyticsContext';
 import AdBanner from './AdBanner';
 
 interface DownloadFlowProps {
@@ -8,22 +11,11 @@ interface DownloadFlowProps {
   onDownloadComplete: () => void;
 }
 
-import { useSiteSettings } from '../context/SiteContext';
-
-interface DownloadFlowProps {
-  gameTitle: string;
-  downloadUrl: string;
-  onDownloadComplete: () => void;
-}
-
-const DownloadFlow: React.FC<DownloadFlowProps> = ({
-  gameTitle,
-  downloadUrl,
-  onDownloadComplete
-}) => {
-  const { downloadTimer } = useSiteSettings();
+export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplete }: DownloadFlowProps) {
+  const { downloadTimer: siteTimer } = useSiteSettings();
+  const { trackEvent } = useAnalytics();
   const [step, setStep] = useState(1);
-  const [countdown, setCountdown] = useState(downloadTimer || 15);
+  const [countdown, setCountdown] = useState(siteTimer || 15);
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
@@ -38,7 +30,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
   }, [step, countdown]);
 
   const handleStartDownload = () => {
-    setCountdown(downloadTimer || 15); // Ensure we start with fresh timer
+    setCountdown(siteTimer || 15); // Ensure we start with fresh timer
     setStep(2);
   };
 
@@ -64,8 +56,8 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
             <div
               key={i}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i <= step
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-slate-200 text-slate-500'
+                ? 'bg-purple-600 text-white'
+                : 'bg-slate-200 text-slate-500'
                 }`}
             >
               {i}
@@ -106,7 +98,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
             <div className="w-full bg-slate-200 rounded-full h-2">
               <div
                 className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${((downloadTimer - countdown) / downloadTimer) * 100}%` }}
+                style={{ width: `${((siteTimer - countdown) / siteTimer) * 100}%` }}
               />
             </div>
           </div>
@@ -142,17 +134,20 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
             <p className="text-slate-600">
               Your download is ready. Click the button below to start downloading {gameTitle}.
             </p>
-            <button
-              onClick={handleFinalDownload}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+            <a
+              href={downloadUrl}
+              target="_blank"
+              onClick={() => {
+                trackEvent('download', { itemTitle: gameTitle });
+                onDownloadComplete();
+              }}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white py-4 rounded-2xl font-bold text-xl transition-all shadow-lg hover:shadow-green-100 flex items-center justify-center space-x-3 mb-4"
             >
               Download Now
-            </button>
+            </a>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default DownloadFlow;
+}

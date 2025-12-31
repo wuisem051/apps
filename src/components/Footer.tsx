@@ -35,10 +35,10 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/privacy" className="hover:text-purple-400 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-purple-400 transition-colors">Terms of Service</Link></li>
-              <li><Link to="/dmca" className="hover:text-purple-400 transition-colors">DMCA</Link></li>
-              <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Contact</Link></li>
+              <li><Link to="/p/privacy" className="hover:text-purple-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/p/terms" className="hover:text-purple-400 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/p/dmca" className="hover:text-purple-400 transition-colors">DMCA</Link></li>
+              <li><Link to="/p/contact" className="hover:text-purple-400 transition-colors">Contact</Link></li>
             </ul>
           </div>
 

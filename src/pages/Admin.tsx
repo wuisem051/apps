@@ -2,35 +2,19 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AdBanner from '../components/AdBanner';
-import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe, Settings as SettingsIcon, Save } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe, Settings as SettingsIcon, Save, TrendingUp } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteContext';
+import { useContent } from '../context/ContentContext';
+import { useAnalytics } from '../context/AnalyticsContext';
+import type { Game, AppItem } from '../context/ContentContext';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+} from 'recharts';
 
 export const ADMIN_CREDENTIALS = {
   username: 'admin',
   password: 'admin123'
-};
-
-type Game = {
-  id: string;
-  title: string;
-  description: string;
-  image?: string;
-  rating?: number;
-  downloads?: string;
-  size?: string;
-  category?: string;
-  version?: string;
-  developer?: string;
-  requirements?: string;
-  releaseDate?: string;
-  downloadUrl?: string;
-};
-
-type AppItem = Omit<Game, 'category'> & { appCategory?: string };
-
-const LS_KEYS = {
-  GAMES: 'admin_games_v1',
-  APPS: 'admin_apps_v1'
 };
 
 function generateId(prefix = '') {
@@ -42,9 +26,11 @@ export default function Admin() {
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({ ...ADMIN_CREDENTIALS });
 
-  // Content state
-  const [games, setGames] = useState<Game[]>([]);
-  const [apps, setApps] = useState<AppItem[]>([]);
+  const { siteName, footerText, downloadTimer, adPlacements, homeHero, footerPages, updateSettings, updateAdPlacement } = useSiteSettings();
+  const { games, apps, addGame, updateGame, deleteGame, addApp, updateApp, deleteApp } = useContent();
+  const { logs, clearLogs } = useAnalytics();
+
+  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics'>('content');
 
   // UI state
   const [showGameForm, setShowGameForm] = useState(false);
@@ -59,37 +45,20 @@ export default function Admin() {
   const [isScraping, setIsScraping] = useState(false);
 
   // Settings state
-  const { siteName, footerText, downloadTimer, adPlacements, updateSettings, updateAdPlacement } = useSiteSettings();
   const [settingsForm, setSettingsForm] = useState({ siteName: '', footerText: '', downloadTimer: 15 });
+  const [heroForm, setHeroForm] = useState({ title: '', subtitle: '' });
+  const [pagesForm, setPagesForm] = useState<any[]>([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [editingPageSlug, setEditingPageSlug] = useState<string | null>(null);
+  const [pageContentForm, setPageContentForm] = useState({ title: '', content: '' });
   const [editingPlacementId, setEditingPlacementId] = useState<string | null>(null);
-  const [placementForm, setPlacementForm] = useState<Partial<import('../context/SiteContext').AdPlacement>>({});
+  const [placementForm, setPlacementForm] = useState<Partial<any>>({});
 
   useEffect(() => {
     setSettingsForm({ siteName, footerText, downloadTimer });
-  }, [siteName, footerText, downloadTimer, showSettings]);
-
-  useEffect(() => {
-    // Load persisted data
-    try {
-      const g = localStorage.getItem(LS_KEYS.GAMES);
-      const a = localStorage.getItem(LS_KEYS.APPS);
-      if (g) setGames(JSON.parse(g));
-      if (a) setApps(JSON.parse(a));
-    } catch (err) {
-      console.error('Failed to load admin data from localStorage', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Persist whenever arrays change
-    try {
-      localStorage.setItem(LS_KEYS.GAMES, JSON.stringify(games));
-      localStorage.setItem(LS_KEYS.APPS, JSON.stringify(apps));
-    } catch (err) {
-      console.error('Failed to save admin data to localStorage', err);
-    }
-  }, [games, apps]);
+    setHeroForm({ title: homeHero.title, subtitle: homeHero.subtitle });
+    setPagesForm([...footerPages]);
+  }, [siteName, footerText, downloadTimer, homeHero, footerPages, showSettings]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,19 +102,14 @@ export default function Admin() {
       return;
     }
     if (editingGameId) {
-      setGames((prev) => prev.map((g) => (g.id === editingGameId ? { ...(g as Game), ...(gameForm as Game) } : g)));
+      updateGame({ ...(gameForm as Game), id: editingGameId });
     } else {
       const newGame: Game = { ...(gameForm as Game), id: generateId('game-') };
-      setGames((prev) => [newGame, ...prev]);
+      addGame(newGame);
     }
     setShowGameForm(false);
     setEditingGameId(null);
     setGameForm({});
-  };
-
-  const deleteGame = (id: string) => {
-    if (!confirm('Delete this game? This action cannot be undone.')) return;
-    setGames((prev) => prev.filter((g) => g.id !== id));
   };
 
   // Apps handlers
@@ -181,21 +145,15 @@ export default function Admin() {
       return;
     }
     if (editingAppId) {
-      setApps((prev) => prev.map((a) => (a.id === editingAppId ? { ...(a as AppItem), ...(appForm as AppItem) } : a)));
+      updateApp({ ...(appForm as AppItem), id: editingAppId });
     } else {
       const newApp: AppItem = { ...(appForm as AppItem), id: generateId('app-') };
-      setApps((prev) => [newApp, ...prev]);
+      addApp(newApp);
     }
     setShowAppForm(false);
     setEditingAppId(null);
     setAppForm({});
   };
-
-  const deleteApp = (id: string) => {
-    if (!confirm('Delete this app? This action cannot be undone.')) return;
-    setApps((prev) => prev.filter((a) => a.id !== id));
-  };
-
 
   const handleScrape = async () => {
     if (!scrapeUrl) return;
@@ -213,7 +171,6 @@ export default function Admin() {
         doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
       const image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
 
-      // If no form is open, default to Game form and open it
       if (!showGameForm && !showAppForm) {
         setGameForm({ title, description, image, downloadUrl: scrapeUrl });
         setShowGameForm(true);
@@ -227,7 +184,7 @@ export default function Admin() {
       }
     } catch (error) {
       console.error('Scraping error:', error);
-      alert('Failed to scrape content. The site might be blocking proxies or the URL is invalid.');
+      alert('Failed to scrape content.');
     } finally {
       setIsScraping(false);
       setScrapeUrl('');
@@ -241,15 +198,57 @@ export default function Admin() {
     setShowSettings(false);
   };
 
-  // Quick stats (derived)
-  const totalGames = games.length || 156; // fallback to demo metric
-  const totalApps = apps.length || 89;
+  // Analytics Helpers
+  const getDailyStats = () => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toISOString().split('T')[0];
+    }).reverse();
+
+    return last7Days.map(date => {
+      const dayLogs = logs.filter(l => new Date(l.timestamp).toISOString().split('T')[0] === date);
+      return {
+        date,
+        visits: dayLogs.filter(l => l.type === 'visit').length,
+        downloads: dayLogs.filter(l => l.type === 'download').length
+      };
+    });
+  };
+
+  const getTopContent = (type: 'view' | 'download' = 'view') => {
+    const counts: Record<string, { title: string; count: number }> = {};
+    logs.filter(l => l.type === type && l.itemTitle).forEach(l => {
+      counts[l.itemTitle!] = {
+        title: l.itemTitle!,
+        count: (counts[l.itemTitle!]?.count || 0) + 1
+      };
+    });
+    return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 5);
+  };
+
+  const getGeoData = () => {
+    const countries: Record<string, number> = {};
+    logs.filter(l => l.type === 'visit').forEach(l => {
+      const c = l.geo.country || 'Unknown';
+      countries[c] = (countries[c] || 0) + 1;
+    });
+    return Object.entries(countries).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+  };
+
+  const getDeviceData = () => {
+    const os: Record<string, number> = {};
+    logs.filter(l => l.type === 'visit').forEach(l => {
+      const name = l.device.os || 'Unknown';
+      os[name] = (os[name] || 0) + 1;
+    });
+    return Object.entries(os).map(([name, value]) => ({ name, value }));
+  };
 
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-50">
         <Header />
-
         <main className="py-16">
           <div className="max-w-md mx-auto px-4">
             <div className="bg-white rounded-lg border border-slate-300 p-8">
@@ -260,12 +259,9 @@ export default function Admin() {
                 <h1 className="text-2xl font-bold text-slate-800 mb-2">Admin Login</h1>
                 <p className="text-slate-600">Access the admin panel to manage content</p>
               </div>
-
               <form onSubmit={handleLogin} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Username
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Username</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
@@ -278,11 +274,8 @@ export default function Admin() {
                     />
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
@@ -302,26 +295,13 @@ export default function Admin() {
                     </button>
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors"
-                >
+                <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-colors">
                   Login to Admin Panel
                 </button>
               </form>
-
-              <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-                <p className="text-sm text-slate-600">
-                  <strong>Demo Credentials:</strong><br />
-                  Username: <span className="font-mono">{ADMIN_CREDENTIALS.username}</span><br />
-                  Password: <span className="font-mono">{ADMIN_CREDENTIALS.password}</span>
-                </p>
-              </div>
             </div>
           </div>
         </main>
-
         <Footer />
       </div>
     );
@@ -330,7 +310,6 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
-
       <main className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
@@ -338,472 +317,339 @@ export default function Admin() {
             <p className="text-slate-600">Manage games, apps, and monetization settings</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg border border-slate-300 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Total Games</h3>
-              <p className="text-3xl font-bold text-purple-600">{totalGames}</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-300 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Total Apps</h3>
-              <p className="text-3xl font-bold text-pink-500">{totalApps}</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-300 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Downloads Today</h3>
-              <p className="text-3xl font-bold text-green-600">2,341</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-300 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Ad Revenue</h3>
-              <p className="text-3xl font-bold text-blue-600">$1,234</p>
-            </div>
+          <div className="flex gap-4 mb-8 border-b pb-4 overflow-x-auto whitespace-nowrap">
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'content' ? 'border-b-4 border-purple-600 text-purple-600' : 'text-slate-400'}`}
+            >
+              Content Management
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'settings' ? 'border-b-4 border-slate-600 text-slate-800' : 'text-slate-400'}`}
+            >
+              Site Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'analytics' ? 'border-b-4 border-orange-600 text-orange-600' : 'text-slate-400'}`}
+            >
+              Real-time Analytics
+            </button>
           </div>
 
-          {/* Quick actions */}
-
-
-          <div className="bg-white rounded-lg border border-slate-300 p-6 mb-8">
-            <h2 className="text-xl font-semibold text-slate-800 mb-4">Quick Actions</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Content Import Card */}
-              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Download className="w-5 h-5 text-indigo-600" />
-                  <h3 className="font-semibold text-indigo-900">Import Content</h3>
+          {activeTab === 'content' && (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Games</h3>
+                  <p className="text-3xl font-black text-purple-600">{games.length}</p>
                 </div>
-                <p className="text-sm text-indigo-700 mb-3">
-                  Paste a URL from LiteAPKs, Modyolo, or similar sites to automatically fill content details.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    value={scrapeUrl}
-                    onChange={(e) => setScrapeUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="flex-1 text-sm border-indigo-200 rounded px-3 py-2 focus:outline-none focus:border-indigo-400"
-                  />
-                  <button
-                    onClick={handleScrape}
-                    disabled={isScraping || !scrapeUrl}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
-                  >
-                    {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
-                    Import
-                  </button>
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Apps</h3>
+                  <p className="text-3xl font-black text-pink-500">{apps.length}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Total Visits</h3>
+                  <p className="text-3xl font-black text-blue-500">{logs.filter(l => l.type === 'visit').length}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Downloads</h3>
+                  <p className="text-3xl font-black text-green-500">{logs.filter(l => l.type === 'download').length}</p>
                 </div>
               </div>
 
-              {/* Add Buttons Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={openNewGameForm} className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
-                  <PlusCircle className="w-6 h-6" /> Add Game
-                </button>
-                <button onClick={openNewAppForm} className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
-                  <PlusCircle className="w-6 h-6" /> Add App
-                </button>
-
-                <button onClick={() => setShowSettings(!showSettings)} className="bg-slate-600 hover:bg-slate-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
-                  <SettingsIcon className="w-6 h-6" /> Site Settings
-                </button>
-              </div>
-            </div>
-
-            {/* Settings Panel */}
-            {showSettings && (
-              <div className="mt-4 border-t border-slate-200 pt-4 animate-in fade-in slide-in-from-top-2">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                  <SettingsIcon className="w-5 h-5" /> Site Configuration
-                </h3>
-                <form onSubmit={handleSaveSettings} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Site Name</label>
-                      <input
-                        type="text"
-                        value={settingsForm.siteName}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, siteName: e.target.value })}
-                        className="w-full border border-slate-300 rounded px-3 py-2"
-                        placeholder="APKVault"
-                      />
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                  <PlusCircle className="w-6 h-6 text-purple-600" /> Content Portal
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Download className="w-5 h-5 text-indigo-600" />
+                      <h3 className="font-bold text-slate-700">Web Scraper Import</h3>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Footer Text</label>
+                    <div className="flex gap-2">
                       <input
-                        type="text"
-                        value={settingsForm.footerText}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, footerText: e.target.value })}
-                        className="w-full border border-slate-300 rounded px-3 py-2"
-                        placeholder="© 2025 APKVault. All rights reserved."
+                        value={scrapeUrl}
+                        onChange={(e) => setScrapeUrl(e.target.value)}
+                        placeholder="Paste URL to import..."
+                        className="flex-1 text-sm border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                       />
+                      <button
+                        onClick={handleScrape}
+                        disabled={isScraping || !scrapeUrl}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-black text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+                      >
+                        {isScraping ? 'WAIT...' : 'IMPORT'}
+                      </button>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Download Timer (seconds)</label>
-                    <input
-                      type="number"
-                      value={settingsForm.downloadTimer}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, downloadTimer: parseInt(e.target.value) || 0 })}
-                      className="w-full border border-slate-300 rounded px-3 py-2"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900 flex items-center gap-2">
-                      <Save className="w-4 h-4" /> Save Settings
+                  <div className="grid grid-cols-2 gap-3">
+                    <button onClick={openNewGameForm} className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-3 transition-all">
+                      <PlusCircle className="w-5 h-5" /> Game
+                    </button>
+                    <button onClick={openNewAppForm} className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-3 transition-all">
+                      <PlusCircle className="w-5 h-5" /> App
                     </button>
                   </div>
-                </form>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Games list */}
-            <div className="col-span-1 lg:col-span-1">
-              <div className="bg-white rounded-lg border border-slate-300 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Games ({games.length})</h3>
-                  <button
-                    onClick={openNewGameForm}
-                    className="text-sm text-purple-600 hover:underline flex items-center gap-1"
-                  >
-                    <PlusCircle className="w-4 h-4" /> New
-                  </button>
                 </div>
+              </div>
 
-                {games.length === 0 ? (
-                  <p className="text-sm text-slate-500">No games added yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {games.map((g) => (
-                      <li key={g.id} className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <img src={g.image || 'https://via.placeholder.com/60x40?text=GAME'} alt={g.title} className="w-16 h-10 object-cover rounded-md" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-purple-600" /> Manage Games
+                  </h3>
+                  <ul className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto pr-2">
+                    {games.map(g => (
+                      <li key={g.id} className="py-3 flex justify-between items-center group">
+                        <div className="flex items-center gap-3">
+                          <img src={g.image} alt="" className="w-12 h-12 object-cover rounded-lg shadow-sm" />
                           <div>
-                            <div className="font-medium text-slate-800">{g.title}</div>
-                            <div className="text-xs text-slate-500">{g.downloads || '—'} • {g.size || '—'}</div>
+                            <p className="font-bold text-slate-800">{g.title}</p>
+                            <p className="text-[10px] font-black text-purple-500 uppercase">{g.category}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button title="Edit" onClick={() => openEditGameForm(g)} className="p-2 rounded-md hover:bg-slate-100">
-                            <Edit className="w-4 h-4 text-slate-600" />
-                          </button>
-                          <button title="Delete" onClick={() => deleteGame(g.id)} className="p-2 rounded-md hover:bg-slate-100">
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </button>
+                        <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEditGameForm(g)}><Edit className="w-4 h-4 text-slate-600" /></button>
+                          <button onClick={() => deleteGame(g.id)}><Trash2 className="w-4 h-4 text-red-600" /></button>
                         </div>
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-
-              {/* Game form modal/section */}
-              {showGameForm && (
-                <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
-                  <h4 className="text-lg font-semibold mb-3">{editingGameId ? 'Edit Game' : 'Add New Game'}</h4>
-
-                  <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <label className="block text-xs font-semibold text-purple-700 mb-1 uppercase">Import from URL (LiteAPKs, Modyolo, etc)</label>
-                    <div className="flex gap-2">
-                      <input
-                        value={scrapeUrl}
-                        onChange={(e) => setScrapeUrl(e.target.value)}
-                        placeholder="Paste URL here..."
-                        className="flex-1 text-sm border-purple-200 rounded px-2 py-1 focus:outline-none focus:border-purple-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleScrape}
-                        disabled={isScraping || !scrapeUrl}
-                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
-                      >
-                        {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
-                        Import
-                      </button>
-                    </div>
-                  </div>
-
-                  <form onSubmit={saveGame} className="space-y-3">
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Title</label>
-                      <input value={gameForm.title || ''} onChange={(e) => setGameForm({ ...gameForm, title: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" required />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Description</label>
-                      <textarea value={gameForm.description || ''} onChange={(e) => setGameForm({ ...gameForm, description: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" rows={3} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Image URL</label>
-                        <input value={gameForm.image || ''} onChange={(e) => setGameForm({ ...gameForm, image: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Category</label>
-                        <input value={gameForm.category || ''} onChange={(e) => setGameForm({ ...gameForm, category: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <input value={gameForm.downloads || ''} onChange={(e) => setGameForm({ ...gameForm, downloads: e.target.value })} placeholder="Downloads" className="border border-slate-300 rounded px-3 py-2" />
-                      <input value={gameForm.size || ''} onChange={(e) => setGameForm({ ...gameForm, size: e.target.value })} placeholder="Size" className="border border-slate-300 rounded px-3 py-2" />
-                      <input value={gameForm.rating?.toString() || ''} onChange={(e) => setGameForm({ ...gameForm, rating: Number(e.target.value) })} placeholder="Rating" className="border border-slate-300 rounded px-3 py-2" />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Download URL</label>
-                      <input value={gameForm.downloadUrl || ''} onChange={(e) => setGameForm({ ...gameForm, downloadUrl: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" required />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
-                        <Check className="w-4 h-4" /> {editingGameId ? 'Save' : 'Create'}
-                      </button>
-                      <button type="button" onClick={() => { setShowGameForm(false); setEditingGameId(null); setGameForm({}); }} className="px-4 py-2 rounded-md border border-slate-300">
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
                 </div>
-              )}
-            </div>
-
-            {/* Apps list */}
-            <div className="col-span-1 lg:col-span-1">
-              <div className="bg-white rounded-lg border border-slate-300 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Apps ({apps.length})</h3>
-                  <button
-                    onClick={openNewAppForm}
-                    className="text-sm text-pink-500 hover:underline flex items-center gap-1"
-                  >
-                    <PlusCircle className="w-4 h-4" /> New
-                  </button>
-                </div>
-
-                {apps.length === 0 ? (
-                  <p className="text-sm text-slate-500">No apps added yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {apps.map((a) => (
-                      <li key={a.id} className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <img src={a.image || 'https://via.placeholder.com/60x40?text=APP'} alt={a.title} className="w-16 h-10 object-cover rounded-md" />
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-pink-500" /> Manage Apps
+                  </h3>
+                  <ul className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto pr-2">
+                    {apps.map(a => (
+                      <li key={a.id} className="py-3 flex justify-between items-center group">
+                        <div className="flex items-center gap-3">
+                          <img src={a.image} alt="" className="w-12 h-12 object-cover rounded-lg shadow-sm" />
                           <div>
-                            <div className="font-medium text-slate-800">{a.title}</div>
-                            <div className="text-xs text-slate-500">{a.downloads || '—'} • {a.size || '—'}</div>
+                            <p className="font-bold text-slate-800">{a.title}</p>
+                            <p className="text-[10px] font-black text-pink-500 uppercase">{a.appCategory}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button title="Edit" onClick={() => openEditAppForm(a)} className="p-2 rounded-md hover:bg-slate-100">
-                            <Edit className="w-4 h-4 text-slate-600" />
-                          </button>
-                          <button title="Delete" onClick={() => deleteApp(a.id)} className="p-2 rounded-md hover:bg-slate-100">
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </button>
+                        <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEditAppForm(a)}><Edit className="w-4 h-4 text-slate-600" /></button>
+                          <button onClick={() => deleteApp(a.id)}><Trash2 className="w-4 h-4 text-red-600" /></button>
                         </div>
                       </li>
                     ))}
                   </ul>
-                )}
+                </div>
               </div>
 
-              {showAppForm && (
-                <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
-                  <h4 className="text-lg font-semibold mb-3">{editingAppId ? 'Edit App' : 'Add New App'}</h4>
-
-                  <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-100">
-                    <label className="block text-xs font-semibold text-pink-700 mb-1 uppercase">Import from URL</label>
-                    <div className="flex gap-2">
-                      <input
-                        value={scrapeUrl}
-                        onChange={(e) => setScrapeUrl(e.target.value)}
-                        placeholder="Paste URL here..."
-                        className="flex-1 text-sm border-pink-200 rounded px-2 py-1 focus:outline-none focus:border-pink-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleScrape}
-                        disabled={isScraping || !scrapeUrl}
-                        className="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600 disabled:opacity-50 flex items-center gap-1"
-                      >
-                        {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
-                        Import
-                      </button>
-                    </div>
-                  </div>
-
-                  <form onSubmit={saveApp} className="space-y-3">
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Title</label>
-                      <input value={appForm.title || ''} onChange={(e) => setAppForm({ ...appForm, title: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" required />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Description</label>
-                      <textarea value={appForm.description || ''} onChange={(e) => setAppForm({ ...appForm, description: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" rows={3} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Image URL</label>
-                        <input value={appForm.image || ''} onChange={(e) => setAppForm({ ...appForm, image: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" />
+              <div className="mt-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <SettingsIcon className="w-5 h-5 text-slate-400" /> Ad Inventory
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {adPlacements && Object.values(adPlacements).map((p: any) => (
+                    <div key={p.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-700 text-sm">{p.name}</span>
+                        <span className={`text-[10px] font-black uppercase ${p.active ? 'text-green-500' : 'text-slate-400'}`}>
+                          {p.active ? 'Online' : 'Paused'}
+                        </span>
                       </div>
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Category</label>
-                        <input value={appForm.appCategory || ''} onChange={(e) => setAppForm({ ...appForm, appCategory: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <input value={appForm.downloads || ''} onChange={(e) => setAppForm({ ...appForm, downloads: e.target.value })} placeholder="Downloads" className="border border-slate-300 rounded px-3 py-2" />
-                      <input value={appForm.size || ''} onChange={(e) => setAppForm({ ...appForm, size: e.target.value })} placeholder="Size" className="border border-slate-300 rounded px-3 py-2" />
-                      <input value={appForm.rating?.toString() || ''} onChange={(e) => setAppForm({ ...appForm, rating: Number(e.target.value) })} placeholder="Rating" className="border border-slate-300 rounded px-3 py-2" />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Download URL</label>
-                      <input value={appForm.downloadUrl || ''} onChange={(e) => setAppForm({ ...appForm, downloadUrl: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" required />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded-md flex items-center gap-2">
-                        <Check className="w-4 h-4" /> {editingAppId ? 'Save' : 'Create'}
-                      </button>
-                      <button type="button" onClick={() => { setShowAppForm(false); setEditingAppId(null); setAppForm({}); }} className="px-4 py-2 rounded-md border border-slate-300">
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-
-            {/* Ads manager */}
-            <div className="col-span-1 lg:col-span-1">
-              <div className="bg-white rounded-lg border border-slate-300 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Ad Placements</h3>
-                </div>
-
-                <div className="space-y-4">
-                  {adPlacements && Object.values(adPlacements).map((placement) => (
-                    <div key={placement.id} className="border border-slate-100 rounded p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-medium text-slate-800 text-sm">{placement.name}</div>
-                          <div className="text-xs text-slate-500">{placement.width}x{placement.height} • {placement.active ? 'Active' : 'Inactive'}</div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            title="Edit"
-                            className="p-1.5 rounded-md hover:bg-slate-100"
-                            onClick={() => {
-                              setEditingPlacementId(placement.id);
-                              setPlacementForm(placement);
-                            }}
-                          >
-                            <Edit className="w-4 h-4 text-slate-600" />
-                          </button>
-                        </div>
-                      </div>
+                      <button onClick={() => {
+                        const active = !p.active;
+                        updateAdPlacement(p.id, { ...p, active });
+                        alert(`Ad ${active ? 'Enabled' : 'Disabled'}`);
+                      }} className="text-sm text-purple-600">Toggle</button>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
+          )}
 
-              {editingPlacementId && (
-                <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
-                  <h4 className="text-lg font-semibold mb-3">Edit Placement</h4>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    if (editingPlacementId) {
-                      updateAdPlacement(editingPlacementId, placementForm);
-                      setEditingPlacementId(null);
-                      alert('Placement updated!');
-                    }
-                  }} className="space-y-3">
-                    <div>
-                      <label className="block text-sm text-slate-700 mb-1">Type</label>
-                      <select
-                        value={placementForm.type}
-                        onChange={(e) => setPlacementForm({ ...placementForm, type: e.target.value as any })}
-                        className="w-full border border-slate-300 rounded px-3 py-2"
-                      >
-                        <option value="zone">Adsterra Zone</option>
-                        <option value="script">Custom Script</option>
-                      </select>
+          {activeTab === 'settings' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                  <Globe className="w-6 h-6 text-indigo-600" /> Site Configuration
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <form onSubmit={handleSaveSettings} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Site Name</label>
+                      <input value={settingsForm.siteName} onChange={e => setSettingsForm({ ...settingsForm, siteName: e.target.value })} className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold" />
                     </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Footer Text</label>
+                      <input value={settingsForm.footerText} onChange={e => setSettingsForm({ ...settingsForm, footerText: e.target.value })} className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Download Timer (sec)</label>
+                      <input type="number" value={settingsForm.downloadTimer} onChange={e => setSettingsForm({ ...settingsForm, downloadTimer: parseInt(e.target.value) })} className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold" />
+                    </div>
+                    <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-slate-200">Save General Settings</button>
+                  </form>
 
-                    {placementForm.type === 'zone' ? (
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Zone ID</label>
-                        <input
-                          value={placementForm.value || ''}
-                          onChange={(e) => setPlacementForm({ ...placementForm, value: e.target.value })}
-                          className="w-full border border-slate-300 rounded px-3 py-2"
-                          placeholder="e.g. 12345678"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Script / HTML</label>
-                        <textarea
-                          value={placementForm.value || ''}
-                          onChange={(e) => setPlacementForm({ ...placementForm, value: e.target.value })}
-                          className="w-full border border-slate-300 rounded px-3 py-2 font-mono text-xs"
-                          rows={4}
-                          placeholder="<script>...</script>"
-                        />
+                  <div className="space-y-4 border-l pl-8 border-slate-100">
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Home Hero Content</h4>
+                    <div className="space-y-3">
+                      <input value={heroForm.title} onChange={e => setHeroForm({ ...heroForm, title: e.target.value })} className="w-full border-2 border-slate-100 p-3 rounded-xl font-bold text-sm" placeholder="Hero Title" />
+                      <textarea value={heroForm.subtitle} onChange={e => setHeroForm({ ...heroForm, subtitle: e.target.value })} className="w-full border-2 border-slate-100 p-3 rounded-xl font-bold text-sm h-24" placeholder="Hero Subtitle" />
+                      <button onClick={() => updateSettings({ homeHero: heroForm })} className="bg-pink-600 text-white px-6 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest transition-all hover:bg-pink-700">Update Hero</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-slate-100">
+                  <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                    <Globe className="w-6 h-6 text-orange-500" /> Legal Pages Content
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      {footerPages.map(page => (
+                        <button key={page.slug} onClick={() => { setEditingPageSlug(page.slug); setPageContentForm({ title: page.title, content: page.content }); }} className={`w-full text-left p-4 rounded-xl border-2 transition-all ${editingPageSlug === page.slug ? 'border-orange-500 bg-orange-50' : 'border-slate-50 bg-slate-50'}`}>
+                          <span className="font-bold text-slate-700">{page.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {editingPageSlug && (
+                      <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <input value={pageContentForm.title} onChange={e => setPageContentForm({ ...pageContentForm, title: e.target.value })} className="w-full border p-3 rounded-xl font-bold" />
+                        <textarea value={pageContentForm.content} onChange={e => setPageContentForm({ ...pageContentForm, content: e.target.value })} className="w-full border p-3 rounded-xl font-mono text-sm h-48" />
+                        <button onClick={() => {
+                          const newPages = footerPages.map(p => p.slug === editingPageSlug ? { ...p, ...pageContentForm } : p);
+                          updateSettings({ footerPages: newPages });
+                          setEditingPageSlug(null);
+                          alert("Page Updated!");
+                        }} className="w-full bg-orange-600 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest">Update Resource</button>
                       </div>
                     )}
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Width</label>
-                        <select
-                          value={placementForm.width}
-                          onChange={(e) => setPlacementForm({ ...placementForm, width: Number(e.target.value) })}
-                          className="w-full border border-slate-300 rounded px-3 py-2"
-                        >
-                          <option value="728">728 (Leaderboard)</option>
-                          <option value="300">300 (Medium Rect)</option>
-                          <option value="160">160 (Skyscraper)</option>
-                          <option value="320">320 (Mobile)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm text-slate-700 mb-1">Height</label>
-                        <select
-                          value={placementForm.height}
-                          onChange={(e) => setPlacementForm({ ...placementForm, height: Number(e.target.value) })}
-                          className="w-full border border-slate-300 rounded px-3 py-2"
-                        >
-                          <option value="90">90 (Leaderboard)</option>
-                          <option value="250">250 (Medium Rect)</option>
-                          <option value="600">600 (Skyscraper)</option>
-                          <option value="50">50 (Mobile)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <label className="inline-flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={!!placementForm.active}
-                          onChange={(e) => setPlacementForm({ ...placementForm, active: e.target.checked })}
-                        />
-                        <span className="text-sm text-slate-700">Active</span>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
-                        <Check className="w-4 h-4" /> Save
-                      </button>
-                      <button type="button" onClick={() => setEditingPlacementId(null)} className="px-4 py-2 rounded-md border border-slate-300">
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Traffic & Interaction (7D)</h3>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={getDailyStats()}>
+                        <defs>
+                          <linearGradient id="cV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
+                          <linearGradient id="cD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
+                        </defs>
+                        <Tooltip contentStyle={{ borderRadius: '12px' }} />
+                        <Area type="monotone" dataKey="visits" stroke="#3b82f6" fillOpacity={1} fill="url(#cV)" />
+                        <Area type="monotone" dataKey="downloads" stroke="#10b981" fillOpacity={1} fill="url(#cD)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative">
+                  <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-4">Device OS Distribution</h3>
+                  <div className="h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={getDeviceData()} innerRadius={50} outerRadius={70} dataKey="value">
+                          {getDeviceData().map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'][i % 4]} />)}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {getDeviceData().map((d, i) => (
+                      <div key={i} className="bg-white/5 p-2 rounded-lg border border-white/10">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{d.name}</p>
+                        <p className="text-lg font-black">{d.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Viewed Content</h3>
+                  <div className="space-y-4">
+                    {getTopContent('view').map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group cursor-pointer">
+                        <span className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors truncate max-w-[80%]">{item.title}</span>
+                        <span className="text-xs font-black text-slate-400">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Downloaded Content</h3>
+                  <div className="space-y-4">
+                    {getTopContent('download').map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group cursor-pointer">
+                        <span className="text-sm font-bold text-slate-600 group-hover:text-green-600 transition-colors truncate max-w-[80%]">{item.title}</span>
+                        <span className="text-xs font-black text-slate-400">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex justify-between items-center bg-gradient-to-r from-white to-slate-50">
+                <div className="flex items-center gap-4">
+                  <Globe className="w-8 h-8 text-blue-500 opacity-20" />
+                  <div>
+                    <h4 className="font-black text-slate-800 uppercase tracking-tight text-sm">Geographic Origin</h4>
+                    <p className="text-xs text-slate-400 font-bold">Top Countries: {getGeoData().map(g => g.name).slice(0, 5).join(', ') || 'Waiting for data...'}</p>
+                  </div>
+                </div>
+                <button onClick={() => { if (confirm("Are you sure?")) clearLogs(); }} className="text-xs font-black uppercase text-red-400 hover:text-red-600 transition-colors">Wipe Data</button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {showGameForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
+            <form onSubmit={saveGame} className="space-y-4">
+              <input value={gameForm.title || ''} onChange={e => setGameForm({ ...gameForm, title: e.target.value })} placeholder="Title" className="w-full border p-2 rounded" required />
+              <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+              <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+              <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+              <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Download URL" className="w-full border p-2 rounded" required />
+              <div className="flex gap-2">
+                <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
+                <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showAppForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
+            <form onSubmit={saveApp} className="space-y-4">
+              <input value={appForm.title || ''} onChange={e => setAppForm({ ...appForm, title: e.target.value })} placeholder="Title" className="w-full border p-2 rounded" required />
+              <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+              <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+              <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+              <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Download URL" className="w-full border p-2 rounded" required />
+              <div className="flex gap-2">
+                <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
+                <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

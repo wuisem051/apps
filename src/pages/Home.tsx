@@ -5,16 +5,26 @@ import GameCard from '../components/GameCard';
 import AdBanner from '../components/AdBanner';
 import CategoryFilter from '../components/CategoryFilter';
 import { TrendingUp, Download, Users, Star } from 'lucide-react';
-import { ALL_GAMES } from '../data/mockData';
+import { useContent } from '../context/ContentContext';
+import { useSiteSettings } from '../context/SiteContext';
 
 export default function Home() {
+  const { games, apps } = useContent();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const categories = ['Action', 'Puzzle', 'Social', 'Music', 'Casual', 'Strategy'];
 
+  // Normalize apps to have room for 'category' expected by GameCard
+  const normalizedApps = apps.map(app => ({
+    ...app,
+    category: app.appCategory || 'App'
+  }));
+
+  const allContent = [...games, ...normalizedApps];
+
   const filteredGames = selectedCategory === 'all'
-    ? ALL_GAMES
-    : ALL_GAMES.filter(game => game.category === selectedCategory);
+    ? allContent
+    : allContent.filter(item => item.category === selectedCategory);
 
   const stats = [
     { icon: Download, label: 'Total Downloads', value: '2B+' },
@@ -22,6 +32,8 @@ export default function Home() {
     { icon: Star, label: 'Average Rating', value: '4.5' },
     { icon: TrendingUp, label: 'Apps Available', value: '10K+' }
   ];
+
+  const { homeHero } = useSiteSettings();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -33,10 +45,10 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
-                Download Android Games & Apps
+                {homeHero.title}
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-purple-100 max-w-3xl mx-auto font-medium">
-                Discover thousands of free Android games and apps. Safe, fast downloads with no registration required.
+                {homeHero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button className="bg-white text-purple-600 px-8 py-4 rounded-2xl font-bold hover:bg-purple-50 transition-all shadow-lg hover:shadow-purple-200">

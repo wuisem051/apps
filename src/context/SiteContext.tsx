@@ -10,11 +10,22 @@ export type AdPlacement = {
     active: boolean;
 };
 
+export type FooterPage = {
+    slug: string;
+    title: string;
+    content: string;
+};
+
 type SiteSettings = {
     siteName: string;
     footerText: string;
     downloadTimer: number;
     adPlacements: Record<string, AdPlacement>;
+    homeHero: {
+        title: string;
+        subtitle: string;
+    };
+    footerPages: FooterPage[];
 };
 
 type SiteContextType = SiteSettings & {
@@ -41,6 +52,16 @@ const DEFAULT_SETTINGS: SiteSettings = {
     footerText: '© 2025 APKVault. All rights reserved.',
     downloadTimer: 15,
     adPlacements: DEFAULT_PLACEMENTS,
+    homeHero: {
+        title: 'Download Android Games & Apps',
+        subtitle: 'Discover thousands of free Android games and apps. Safe, fast downloads with no registration required.'
+    },
+    footerPages: [
+        { slug: 'privacy', title: 'Privacy Policy', content: '# Privacy Policy\n\nYour privacy is important to us...' },
+        { slug: 'terms', title: 'Terms of Service', content: '# Terms of Service\n\nBy using our site, you agree to these terms...' },
+        { slug: 'dmca', title: 'DMCA', content: '# DMCA Policy\n\nWe respect intellectual property rights...' },
+        { slug: 'contact', title: 'Contact Us', content: '# Contact Us\n\nYou can reach us at contact@apkvault.com' }
+    ]
 };
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
