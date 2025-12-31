@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { doc, onSnapshot, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export type AdPlacement = {
     id: string;
@@ -31,6 +33,7 @@ type SiteSettings = {
 type SiteContextType = SiteSettings & {
     updateSettings: (settings: Partial<SiteSettings>) => void;
     updateAdPlacement: (id: string, placement: Partial<AdPlacement>) => void;
+    isLoading: boolean;
 };
 
 const DEFAULT_PLACEMENTS: Record<string, AdPlacement> = {
@@ -68,41 +71,47 @@ const SiteContext = createContext<SiteContextType | undefined>(undefined);
 
 export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem('site_settings_v1');
-            if (saved) {
-                setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(saved) });
+        const globalRef = doc(db, 'settings', 'global');
+
+        const initializeSite = async () => {
+            const docSnap = await getDoc(globalRef);
+            if (!docSnap.exists()) {
+                console.log("Seeding initial site settings to Firestore...");
+                await setDoc(globalRef, DEFAULT_SETTINGS);
             }
-        } catch (err) {
-            console.error('Failed to load site settings', err);
-        }
+        };
+
+        initializeSite();
+
+        const unsub = onSnapshot(globalRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setSettings(snapshot.data() as SiteSettings);
+            }
+            setIsLoading(false);
+        });
+
+        return unsub;
     }, []);
 
-    const updateSettings = (newSettings: Partial<SiteSettings>) => {
-        setSettings(prev => {
-            const next = { ...prev, ...newSettings };
-            localStorage.setItem('site_settings_v1', JSON.stringify(next));
-            return next;
-        });
+    const updateSettings = async (newSettings: Partial<SiteSettings>) => {
+        const globalRef = doc(db, 'settings', 'global');
+        await setDoc(globalRef, { ...settings, ...newSettings }, { merge: true });
     };
 
-    const updateAdPlacement = (id: string, placement: Partial<AdPlacement>) => {
-        setSettings(prev => {
-            const currentPlacements = prev.adPlacements || DEFAULT_PLACEMENTS;
-            const updatedPlacements = {
-                ...currentPlacements,
-                [id]: { ...currentPlacements[id], ...placement }
-            };
-            const next = { ...prev, adPlacements: updatedPlacements };
-            localStorage.setItem('site_settings_v1', JSON.stringify(next));
-            return next;
-        });
+    const updateAdPlacement = async (id: string, placement: Partial<AdPlacement>) => {
+        const updatedPlacements = {
+            ...settings.adPlacements,
+            [id]: { ...settings.adPlacements[id], ...placement }
+        };
+        const globalRef = doc(db, 'settings', 'global');
+        await updateDoc(globalRef, { adPlacements: updatedPlacements });
     };
 
     return (
-        <SiteContext.Provider value={{ ...settings, updateSettings, updateAdPlacement }}>
+        <SiteContext.Provider value={{ ...settings, updateSettings, updateAdPlacement, isLoading }}>
             {children}
         </SiteContext.Provider>
     );

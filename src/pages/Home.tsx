@@ -9,8 +9,18 @@ import { useContent } from '../context/ContentContext';
 import { useSiteSettings } from '../context/SiteContext';
 
 export default function Home() {
-  const { games, apps } = useContent();
+  const { games, apps, isLoading: contentLoading } = useContent();
+  const { homeHero, isLoading: settingsLoading } = useSiteSettings();
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  if (contentLoading || settingsLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-bold animate-pulse">Syncing with Cloud...</p>
+      </div>
+    );
+  }
 
   const categories = ['Action', 'Puzzle', 'Social', 'Music', 'Casual', 'Strategy'];
 
@@ -34,7 +44,6 @@ export default function Home() {
     { icon: TrendingUp, label: 'Apps Available', value: '10K+' }
   ];
 
-  const { homeHero } = useSiteSettings();
 
   return (
     <div className="min-h-screen bg-slate-50">

@@ -1,5 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ALL_GAMES } from '../data/mockData';
+import {
+    collection,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    query,
+    orderBy,
+    getDocs,
+    setDoc
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
 export interface Game {
     id: string;
@@ -32,55 +45,90 @@ interface ContentContextType {
     addApp: (app: AppItem) => void;
     updateApp: (app: AppItem) => void;
     deleteApp: (id: string) => void;
+    isLoading: boolean;
 }
-
-const LS_KEYS = {
-    GAMES: 'admin_games_v4', // Incremented for sourceUrl support
-    APPS: 'admin_apps_v4'
-};
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [games, setGames] = useState<Game[]>(() => {
-        const saved = localStorage.getItem(LS_KEYS.GAMES);
-        if (!saved) {
-            return ALL_GAMES
-                .filter(g => !['Social', 'Music'].includes(g.category))
-                .map((g, i) => ({ ...g, createdAt: Date.now() - (i * 1000 * 60 * 60) })) as Game[];
-        }
-        return JSON.parse(saved);
-    });
+    const [games, setGames] = useState<Game[]>([]);
+    const [apps, setApps] = useState<AppItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const [apps, setApps] = useState<AppItem[]>(() => {
-        const saved = localStorage.getItem(LS_KEYS.APPS);
-        if (!saved) {
-            return ALL_GAMES
-                .filter(g => ['Social', 'Music'].includes(g.category))
-                .map((g, i) => ({
+    useEffect(() => {
+        // Seeding logic and real-time listeners
+        const initializeContent = async () => {
+            const gamesRef = collection(db, 'games');
+            const appsRef = collection(db, 'apps');
+
+            const gamesSnap = await getDocs(gamesRef);
+            const appsSnap = await getDocs(appsRef);
+
+            // Seed if completely empty
+            if (gamesSnap.empty && appsSnap.empty) {
+                console.log("Seeding initial data to Firestore...");
+
+                const initialGames = ALL_GAMES.filter(g => !['Social', 'Music'].includes(g.category));
+                const initialApps = ALL_GAMES.filter(g => ['Social', 'Music'].includes(g.category)).map(g => ({
                     ...g,
-                    appCategory: g.category,
-                    createdAt: Date.now() - (i * 1000 * 60 * 60)
-                })) as AppItem[];
-        }
-        return JSON.parse(saved);
-    });
+                    appCategory: g.category
+                }));
 
-    useEffect(() => {
-        localStorage.setItem(LS_KEYS.GAMES, JSON.stringify(games));
-    }, [games]);
+                for (const g of initialGames) {
+                    await setDoc(doc(db, 'games', g.id), { ...g, createdAt: Date.now() });
+                }
+                for (const a of initialApps) {
+                    await setDoc(doc(db, 'apps', a.id), { ...a, createdAt: Date.now() });
+                }
+            }
 
-    useEffect(() => {
-        localStorage.setItem(LS_KEYS.APPS, JSON.stringify(apps));
-    }, [apps]);
+            // Real-time listeners
+            const qGames = query(gamesRef, orderBy('createdAt', 'desc'));
+            const unsubGames = onSnapshot(qGames, (snapshot) => {
+                const gamesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Game[];
+                setGames(gamesData);
+                setIsLoading(false);
+            });
 
-    const addGame = (game: Game) => setGames(prev => [game, ...prev]);
-    const updateGame = (game: Game) => setGames(prev => prev.map(g => g.id === game.id ? game : g));
-    const deleteGame = (id: string) => setGames(prev => prev.filter(g => g.id !== id));
+            const qApps = query(appsRef, orderBy('createdAt', 'desc'));
+            const unsubApps = onSnapshot(qApps, (snapshot) => {
+                const appsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as AppItem[];
+                setApps(appsData);
+                setIsLoading(false);
+            });
 
-    const addApp = (app: AppItem) => setApps(prev => [app, ...prev]);
-    const updateApp = (app: AppItem) => setApps(prev => prev.map(a => a.id === app.id ? app : a));
-    const deleteApp = (id: string) => setApps(prev => prev.filter(a => a.id !== id));
+            return () => {
+                unsubGames();
+                unsubApps();
+            };
+        };
+
+        initializeContent();
+    }, []);
+
+    const addGame = async (game: Game) => {
+        const { id, ...data } = game;
+        await setDoc(doc(db, 'games', id), data);
+    };
+    const updateGame = async (game: Game) => {
+        const { id, ...data } = game;
+        await updateDoc(doc(db, 'games', id), data);
+    };
+    const deleteGame = async (id: string) => {
+        await deleteDoc(doc(db, 'games', id));
+    };
+
+    const addApp = async (app: AppItem) => {
+        const { id, ...data } = app;
+        await setDoc(doc(db, 'apps', id), data);
+    };
+    const updateApp = async (app: AppItem) => {
+        const { id, ...data } = app;
+        await updateDoc(doc(db, 'apps', id), data);
+    };
+    const deleteApp = async (id: string) => {
+        await deleteDoc(doc(db, 'apps', id));
+    };
 
     return (
         <ContentContext.Provider value={{
@@ -91,7 +139,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             deleteGame,
             addApp,
             updateApp,
-            deleteApp
+            deleteApp,
+            isLoading
         }}>
             {children}
         </ContentContext.Provider>

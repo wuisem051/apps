@@ -276,6 +276,9 @@ export default function Admin() {
     return Object.entries(os).map(([name, value]) => ({ name, value }));
   };
 
+  const { isLoading: contentLoading } = useContent();
+  const { isLoading: settingsLoading } = useSiteSettings();
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -369,7 +372,12 @@ export default function Admin() {
             </button>
           </div>
 
-          {activeTab === 'content' && (
+          {(contentLoading || settingsLoading) ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center min-h-[400px]">
+              <div className="w-12 h-12 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-400 font-black uppercase text-xs tracking-widest animate-pulse">Synchronizing Data...</p>
+            </div>
+          ) : activeTab === 'content' && (
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
