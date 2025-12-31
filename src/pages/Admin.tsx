@@ -399,9 +399,7 @@ export default function Admin() {
                 <button onClick={openNewAppForm} className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
                   <PlusCircle className="w-6 h-6" /> Add App
                 </button>
-                <button onClick={openNewAdForm} className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
-                  <PlusCircle className="w-6 h-6" /> Manage Ads
-                </button>
+
                 <button onClick={() => setShowSettings(!showSettings)} className="bg-slate-600 hover:bg-slate-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
                   <SettingsIcon className="w-6 h-6" /> Site Settings
                 </button>
