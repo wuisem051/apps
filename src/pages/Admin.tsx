@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AdBanner from '../components/AdBanner';
-import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe, Settings as SettingsIcon, Save } from 'lucide-react';
+import { useSiteSettings } from '../context/SiteContext';
 
 export const ADMIN_CREDENTIALS = {
   username: 'admin',
@@ -70,6 +71,15 @@ export default function Admin() {
 
   const [scrapeUrl, setScrapeUrl] = useState('');
   const [isScraping, setIsScraping] = useState(false);
+
+  // Settings state
+  const { siteName, footerText, updateSettings } = useSiteSettings();
+  const [settingsForm, setSettingsForm] = useState({ siteName: '', footerText: '' });
+  const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    setSettingsForm({ siteName, footerText });
+  }, [siteName, footerText, showSettings]);
 
   useEffect(() => {
     // Load persisted data
@@ -252,14 +262,17 @@ export default function Admin() {
         doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
       const image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
 
-      if (showGameForm) {
+      // If no form is open, default to Game form and open it
+      if (!showGameForm && !showAppForm) {
+        setGameForm({ title, description, image, downloadUrl: scrapeUrl });
+        setShowGameForm(true);
+        alert('Content scraped! Opened new Game form with data.');
+      } else if (showGameForm) {
         setGameForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
         alert('Content scraped successfully! Review the Game form.');
       } else if (showAppForm) {
         setAppForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
         alert('Content scraped successfully! Review the App form.');
-      } else {
-        alert('Please open a "New Game" or "New App" form first, then click scrape to populate it.');
       }
     } catch (error) {
       console.error('Scraping error:', error);
@@ -268,6 +281,13 @@ export default function Admin() {
       setIsScraping(false);
       setScrapeUrl('');
     }
+  };
+
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSettings(settingsForm);
+    alert('Site settings saved successfully!');
+    setShowSettings(false);
   };
 
   // Quick stats (derived)
@@ -387,28 +407,93 @@ export default function Admin() {
           </div>
 
           {/* Quick actions */}
+
+
           <div className="bg-white rounded-lg border border-slate-300 p-6 mb-8">
             <h2 className="text-xl font-semibold text-slate-800 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={openNewGameForm}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <PlusCircle className="w-5 h-5" /> Add New Game
-              </button>
-              <button
-                onClick={openNewAppForm}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <PlusCircle className="w-5 h-5" /> Add New App
-              </button>
-              <button
-                onClick={openNewAdForm}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <PlusCircle className="w-5 h-5" /> Manage Ads
-              </button>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Content Import Card */}
+              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Download className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-semibold text-indigo-900">Import Content</h3>
+                </div>
+                <p className="text-sm text-indigo-700 mb-3">
+                  Paste a URL from LiteAPKs, Modyolo, or similar sites to automatically fill content details.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={scrapeUrl}
+                    onChange={(e) => setScrapeUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 text-sm border-indigo-200 rounded px-3 py-2 focus:outline-none focus:border-indigo-400"
+                  />
+                  <button
+                    onClick={handleScrape}
+                    disabled={isScraping || !scrapeUrl}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
+                    Import
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Buttons Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={openNewGameForm} className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
+                  <PlusCircle className="w-6 h-6" /> Add Game
+                </button>
+                <button onClick={openNewAppForm} className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
+                  <PlusCircle className="w-6 h-6" /> Add App
+                </button>
+                <button onClick={openNewAdForm} className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
+                  <PlusCircle className="w-6 h-6" /> Manage Ads
+                </button>
+                <button onClick={() => setShowSettings(!showSettings)} className="bg-slate-600 hover:bg-slate-700 text-white p-4 rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-2">
+                  <SettingsIcon className="w-6 h-6" /> Site Settings
+                </button>
+              </div>
             </div>
+
+            {/* Settings Panel */}
+            {showSettings && (
+              <div className="mt-4 border-t border-slate-200 pt-4 animate-in fade-in slide-in-from-top-2">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <SettingsIcon className="w-5 h-5" /> Site Configuration
+                </h3>
+                <form onSubmit={handleSaveSettings} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Site Name</label>
+                      <input
+                        type="text"
+                        value={settingsForm.siteName}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, siteName: e.target.value })}
+                        className="w-full border border-slate-300 rounded px-3 py-2"
+                        placeholder="APKVault"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Footer Text</label>
+                      <input
+                        type="text"
+                        value={settingsForm.footerText}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, footerText: e.target.value })}
+                        className="w-full border border-slate-300 rounded px-3 py-2"
+                        placeholder="© 2025 APKVault. All rights reserved."
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900 flex items-center gap-2">
+                      <Save className="w-4 h-4" /> Save Settings
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

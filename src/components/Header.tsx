@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, Shield, ChevronRight } from 'lucide-react';
+import { Search, Menu, X, Shield, ChevronRight } from 'lucide-react';
 import { ALL_GAMES } from '../data/mockData';
+import { useSiteSettings } from '../context/SiteContext';
 
-const Header = () => {
+export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -11,6 +12,7 @@ const Header = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { siteName } = useSiteSettings();
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -57,11 +59,11 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
+                <span className="text-white font-bold text-xl">A</span>
               </div>
-              <span className="text-xl font-bold text-slate-800 uppercase tracking-tight">APKVault</span>
+              <span className="text-xl font-bold text-slate-800 uppercase tracking-tight">{siteName}</span>
             </Link>
           </div>
 
@@ -71,8 +73,8 @@ const Header = () => {
                 key={item.name}
                 to={item.href}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive(item.href)
-                    ? 'text-purple-600 bg-purple-50 translate-y-[-1px]'
-                    : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
+                  ? 'text-purple-600 bg-purple-50 translate-y-[-1px]'
+                  : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
                   }`}
               >
                 {item.name}
@@ -134,8 +136,8 @@ const Header = () => {
                   key={item.name}
                   to={item.href}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive(item.href)
-                      ? 'text-purple-600 bg-purple-50'
-                      : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
+                    ? 'text-purple-600 bg-purple-50'
+                    : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
                     }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -175,5 +177,3 @@ const Header = () => {
     </header>
   );
 };
-
-export default Header;
