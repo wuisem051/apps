@@ -58,49 +58,66 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     useEffect(() => {
         // Seeding logic and real-time listeners
         const initializeContent = async () => {
-            const gamesRef = collection(db, 'games');
-            const appsRef = collection(db, 'apps');
+            try {
+                const gamesRef = collection(db, 'games');
+                const appsRef = collection(db, 'apps');
 
-            const gamesSnap = await getDocs(gamesRef);
-            const appsSnap = await getDocs(appsRef);
+                const gamesSnap = await getDocs(gamesRef);
+                const appsSnap = await getDocs(appsRef);
 
-            // Seed if completely empty
-            if (gamesSnap.empty && appsSnap.empty) {
-                console.log("Seeding initial data to Firestore...");
+                // Seed if completely empty
+                if (gamesSnap.empty && appsSnap.empty) {
+                    console.log("Seeding initial data to Firestore...");
 
-                const initialGames = ALL_GAMES.filter(g => !['Social', 'Music'].includes(g.category));
-                const initialApps = ALL_GAMES.filter(g => ['Social', 'Music'].includes(g.category)).map(g => ({
-                    ...g,
-                    appCategory: g.category
-                }));
+                    const initialGames = ALL_GAMES.filter(g => !['Social', 'Music'].includes(g.category));
+                    const initialApps = ALL_GAMES.filter(g => ['Social', 'Music'].includes(g.category)).map(g => ({
+                        ...g,
+                        appCategory: g.category
+                    }));
 
-                for (const g of initialGames) {
-                    await setDoc(doc(db, 'games', g.id), { ...g, createdAt: Date.now() });
+                    for (const g of initialGames) {
+                        await setDoc(doc(db, 'games', g.id), { ...g, createdAt: Date.now() });
+                    }
+                    for (const a of initialApps) {
+                        await setDoc(doc(db, 'apps', a.id), { ...a, createdAt: Date.now() });
+                    }
                 }
-                for (const a of initialApps) {
-                    await setDoc(doc(db, 'apps', a.id), { ...a, createdAt: Date.now() });
-                }
+
+                // Real-time listeners
+                const qGames = query(gamesRef, orderBy('createdAt', 'desc'));
+                const unsubGames = onSnapshot(qGames,
+                    (snapshot) => {
+                        const gamesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Game[];
+                        setGames(gamesData);
+                        setIsLoading(false);
+                    },
+                    (error) => {
+                        console.error("Firestore Games Listener Error:", error);
+                        setIsLoading(false);
+                    }
+                );
+
+                const qApps = query(appsRef, orderBy('createdAt', 'desc'));
+                const unsubApps = onSnapshot(qApps,
+                    (snapshot) => {
+                        const appsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as AppItem[];
+                        setApps(appsData);
+                        setIsLoading(false);
+                    },
+                    (error) => {
+                        console.error("Firestore Apps Listener Error:", error);
+                        setIsLoading(false);
+                    }
+                );
+
+                return () => {
+                    unsubGames();
+                    unsubApps();
+                };
+            } catch (error) {
+                console.error("Firestore Initialization Error:", error);
+                setIsLoading(false);
             }
-
-            // Real-time listeners
-            const qGames = query(gamesRef, orderBy('createdAt', 'desc'));
-            const unsubGames = onSnapshot(qGames, (snapshot) => {
-                const gamesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Game[];
-                setGames(gamesData);
-                setIsLoading(false);
-            });
-
-            const qApps = query(appsRef, orderBy('createdAt', 'desc'));
-            const unsubApps = onSnapshot(qApps, (snapshot) => {
-                const appsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as AppItem[];
-                setApps(appsData);
-                setIsLoading(false);
-            });
-
-            return () => {
-                unsubGames();
-                unsubApps();
-            };
         };
 
         initializeContent();

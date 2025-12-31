@@ -77,21 +77,32 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const globalRef = doc(db, 'settings', 'global');
 
         const initializeSite = async () => {
-            const docSnap = await getDoc(globalRef);
-            if (!docSnap.exists()) {
-                console.log("Seeding initial site settings to Firestore...");
-                await setDoc(globalRef, DEFAULT_SETTINGS);
+            try {
+                const docSnap = await getDoc(globalRef);
+                if (!docSnap.exists()) {
+                    console.log("Seeding initial site settings to Firestore...");
+                    await setDoc(globalRef, DEFAULT_SETTINGS);
+                }
+            } catch (error) {
+                console.error("Firestore Site Setup Error:", error);
+                setIsLoading(false);
             }
         };
 
         initializeSite();
 
-        const unsub = onSnapshot(globalRef, (snapshot) => {
-            if (snapshot.exists()) {
-                setSettings(snapshot.data() as SiteSettings);
+        const unsub = onSnapshot(globalRef,
+            (snapshot) => {
+                if (snapshot.exists()) {
+                    setSettings(snapshot.data() as SiteSettings);
+                }
+                setIsLoading(false);
+            },
+            (error) => {
+                console.error("Firestore Site Listener Error:", error);
+                setIsLoading(false);
             }
-            setIsLoading(false);
-        });
+        );
 
         return unsub;
     }, []);
