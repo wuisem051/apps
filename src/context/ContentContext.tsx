@@ -17,6 +17,7 @@ export interface Game {
     requirements: string;
     releaseDate?: string;
     downloadUrl: string;
+    createdAt: number;
 }
 
 export type AppItem = Omit<Game, 'category'> & { appCategory?: string };
@@ -33,8 +34,8 @@ interface ContentContextType {
 }
 
 const LS_KEYS = {
-    GAMES: 'admin_games_v2', // Changed version to avoid conflicts with previous partial implementations if any
-    APPS: 'admin_apps_v2'
+    GAMES: 'admin_games_v3', // Incremented version to ensure fresh data structure
+    APPS: 'admin_apps_v3'
 };
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
@@ -42,17 +43,25 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [games, setGames] = useState<Game[]>(() => {
         const saved = localStorage.getItem(LS_KEYS.GAMES);
-        // Combine mock data with local storage. Default to mock data if empty.
-        if (!saved) return ALL_GAMES.filter(g => !['Social', 'Music'].includes(g.category));
+        if (!saved) {
+            return ALL_GAMES
+                .filter(g => !['Social', 'Music'].includes(g.category))
+                .map((g, i) => ({ ...g, createdAt: Date.now() - (i * 1000 * 60 * 60) })) as Game[];
+        }
         return JSON.parse(saved);
     });
 
     const [apps, setApps] = useState<AppItem[]>(() => {
         const saved = localStorage.getItem(LS_KEYS.APPS);
-        if (!saved) return ALL_GAMES.filter(g => ['Social', 'Music'].includes(g.category)).map(g => ({
-            ...g,
-            appCategory: g.category
-        }));
+        if (!saved) {
+            return ALL_GAMES
+                .filter(g => ['Social', 'Music'].includes(g.category))
+                .map((g, i) => ({
+                    ...g,
+                    appCategory: g.category,
+                    createdAt: Date.now() - (i * 1000 * 60 * 60)
+                })) as AppItem[];
+        }
         return JSON.parse(saved);
     });
 

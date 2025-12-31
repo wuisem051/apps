@@ -20,7 +20,8 @@ export default function Home() {
     category: app.appCategory || 'App'
   }));
 
-  const allContent = [...games, ...normalizedApps];
+  // Combine and sort by createdAt descending (newest first)
+  const allContent = [...games, ...normalizedApps].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
   const filteredGames = selectedCategory === 'all'
     ? allContent

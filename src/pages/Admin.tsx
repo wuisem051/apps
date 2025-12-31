@@ -104,7 +104,22 @@ export default function Admin() {
     if (editingGameId) {
       updateGame({ ...(gameForm as Game), id: editingGameId });
     } else {
-      const newGame: Game = { ...(gameForm as Game), id: generateId('game-') };
+      const newGame: Game = {
+        title: '',
+        description: '',
+        image: '',
+        rating: 4.0,
+        downloads: '0',
+        size: '0MB',
+        category: 'Action',
+        version: '1.0',
+        developer: 'Unknown',
+        requirements: 'Android 5.0+',
+        downloadUrl: '',
+        ...gameForm,
+        id: generateId('game-'),
+        createdAt: Date.now()
+      } as Game;
       addGame(newGame);
     }
     setShowGameForm(false);
@@ -120,12 +135,12 @@ export default function Admin() {
       description: '',
       image: '',
       rating: 4.0,
-      downloads: '',
-      size: '',
-      appCategory: '',
-      version: '',
-      developer: '',
-      requirements: '',
+      downloads: '0',
+      size: '0MB',
+      appCategory: 'Tools',
+      version: '1.0',
+      developer: 'Unknown',
+      requirements: 'Android 5.0+',
       releaseDate: '',
       downloadUrl: ''
     });
@@ -147,7 +162,22 @@ export default function Admin() {
     if (editingAppId) {
       updateApp({ ...(appForm as AppItem), id: editingAppId });
     } else {
-      const newApp: AppItem = { ...(appForm as AppItem), id: generateId('app-') };
+      const newApp: AppItem = {
+        title: '',
+        description: '',
+        image: '',
+        rating: 4.0,
+        downloads: '0',
+        size: '0MB',
+        appCategory: 'Tools',
+        version: '1.0',
+        developer: 'Unknown',
+        requirements: 'Android 5.0+',
+        downloadUrl: '',
+        ...appForm,
+        id: generateId('app-'),
+        createdAt: Date.now()
+      } as AppItem;
       addApp(newApp);
     }
     setShowAppForm(false);
