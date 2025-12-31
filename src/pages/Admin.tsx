@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AdBanner from '../components/AdBanner';
-import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe } from 'lucide-react';
 
 export const ADMIN_CREDENTIALS = {
   username: 'admin',
@@ -67,6 +67,9 @@ export default function Admin() {
   const [showAdForm, setShowAdForm] = useState(false);
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
   const [adForm, setAdForm] = useState<Partial<AdSlot>>({ zoneId: '', width: 728, height: 90, active: true });
+
+  const [scrapeUrl, setScrapeUrl] = useState('');
+  const [isScraping, setIsScraping] = useState(false);
 
   useEffect(() => {
     // Load persisted data
@@ -231,6 +234,40 @@ export default function Admin() {
   const deleteAd = (id: string) => {
     if (!confirm('Delete this ad slot?')) return;
     setAds((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleScrape = async () => {
+    if (!scrapeUrl) return;
+    setIsScraping(true);
+    try {
+      const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(scrapeUrl)}`);
+      if (!response.ok) throw new Error('Failed to fetch URL');
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const title = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+        doc.querySelector('title')?.textContent || '';
+      const description = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') ||
+        doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+      const image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
+
+      if (showGameForm) {
+        setGameForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
+        alert('Content scraped successfully! Review the Game form.');
+      } else if (showAppForm) {
+        setAppForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
+        alert('Content scraped successfully! Review the App form.');
+      } else {
+        alert('Please open a "New Game" or "New App" form first, then click scrape to populate it.');
+      }
+    } catch (error) {
+      console.error('Scraping error:', error);
+      alert('Failed to scrape content. The site might be blocking proxies or the URL is invalid.');
+    } finally {
+      setIsScraping(false);
+      setScrapeUrl('');
+    }
   };
 
   // Quick stats (derived)
@@ -419,6 +456,28 @@ export default function Admin() {
               {showGameForm && (
                 <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
                   <h4 className="text-lg font-semibold mb-3">{editingGameId ? 'Edit Game' : 'Add New Game'}</h4>
+
+                  <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <label className="block text-xs font-semibold text-purple-700 mb-1 uppercase">Import from URL (LiteAPKs, Modyolo, etc)</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={scrapeUrl}
+                        onChange={(e) => setScrapeUrl(e.target.value)}
+                        placeholder="Paste URL here..."
+                        className="flex-1 text-sm border-purple-200 rounded px-2 py-1 focus:outline-none focus:border-purple-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleScrape}
+                        disabled={isScraping || !scrapeUrl}
+                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
+                        Import
+                      </button>
+                    </div>
+                  </div>
+
                   <form onSubmit={saveGame} className="space-y-3">
                     <div>
                       <label className="block text-sm text-slate-700 mb-1">Title</label>
@@ -504,6 +563,28 @@ export default function Admin() {
               {showAppForm && (
                 <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
                   <h4 className="text-lg font-semibold mb-3">{editingAppId ? 'Edit App' : 'Add New App'}</h4>
+
+                  <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-100">
+                    <label className="block text-xs font-semibold text-pink-700 mb-1 uppercase">Import from URL</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={scrapeUrl}
+                        onChange={(e) => setScrapeUrl(e.target.value)}
+                        placeholder="Paste URL here..."
+                        className="flex-1 text-sm border-pink-200 rounded px-2 py-1 focus:outline-none focus:border-pink-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleScrape}
+                        disabled={isScraping || !scrapeUrl}
+                        className="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {isScraping ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Download className="w-3 h-3" />}
+                        Import
+                      </button>
+                    </div>
+                  </div>
+
                   <form onSubmit={saveApp} className="space-y-3">
                     <div>
                       <label className="block text-sm text-slate-700 mb-1">Title</label>
