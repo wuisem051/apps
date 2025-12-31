@@ -493,18 +493,48 @@ export default function Admin() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {adPlacements && Object.values(adPlacements).map((p: any) => (
-                    <div key={p.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-700 text-sm">{p.name}</span>
-                        <span className={`text-[10px] font-black uppercase ${p.active ? 'text-green-500' : 'text-slate-400'}`}>
-                          {p.active ? 'Online' : 'Paused'}
-                        </span>
+                    <div key={p.id} className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-700 text-sm">{p.name}</span>
+                          <span className={`text-[10px] font-black uppercase ${p.active ? 'text-green-500' : 'text-slate-400'}`}>
+                            {p.active ? 'Online' : 'Paused'}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingPlacementId(p.id);
+                              setPlacementForm({ ...p });
+                            }}
+                            className="bg-white p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-purple-600 transition-colors"
+                            title="Configure Ad"
+                          >
+                            <SettingsIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const active = !p.active;
+                              updateAdPlacement(p.id, { active });
+                              alert(`Ad ${active ? 'Enabled' : 'Disabled'}`);
+                            }}
+                            className={`p-1.5 rounded-lg border transition-colors ${p.active ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-slate-200 text-slate-400'}`}
+                            title={p.active ? 'Deactivate' : 'Activate'}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <button onClick={() => {
-                        const active = !p.active;
-                        updateAdPlacement(p.id, { ...p, active });
-                        alert(`Ad ${active ? 'Enabled' : 'Disabled'}`);
-                      }} className="text-sm text-purple-600">Toggle</button>
+                      <div className="bg-slate-200/50 rounded-lg px-3 py-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase text-slate-500">
+                          <span>Type</span>
+                          <span className="text-slate-700">{p.type}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 mt-1">
+                          <span>Value</span>
+                          <span className="text-slate-700 truncate max-w-[120px]">{p.value || 'None'}</span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -703,6 +733,115 @@ export default function Admin() {
               <div className="flex gap-2">
                 <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
                 <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingPlacementId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white p-8 rounded-2xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Configure Ad Placement</h2>
+              <button onClick={() => setEditingPlacementId(null)} className="text-slate-400 hover:text-slate-600">
+                <PlusCircle className="w-6 h-6 rotate-45" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              updateAdPlacement(editingPlacementId, placementForm);
+              setEditingPlacementId(null);
+              alert('Ad placement updated successfully!');
+            }} className="space-y-6">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-1">Editing Placement</p>
+                <p className="text-lg font-black text-purple-600">{placementForm.name}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ad Type</label>
+                  <select
+                    value={placementForm.type}
+                    onChange={e => setPlacementForm({ ...placementForm, type: e.target.value as any })}
+                    className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                  >
+                    <option value="zone">Adsterra Zone</option>
+                    <option value="script">Custom Script / HTML</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                  <div className="flex items-center gap-3 p-3 bg-white border-2 border-slate-100 rounded-xl">
+                    <input
+                      type="checkbox"
+                      checked={placementForm.active}
+                      onChange={e => setPlacementForm({ ...placementForm, active: e.target.checked })}
+                      className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="font-bold text-slate-700 text-sm">{placementForm.active ? 'Active' : 'Inactive'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {placementForm.type === 'zone' ? 'Zone ID / Key' : 'Script Code / HTML'}
+                </label>
+                {placementForm.type === 'zone' ? (
+                  <input
+                    value={placementForm.value || ''}
+                    onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                    placeholder="e.g. 1234567890abcdef"
+                    className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm"
+                  />
+                ) : (
+                  <textarea
+                    value={placementForm.value || ''}
+                    onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                    placeholder="Paste your ad script here..."
+                    className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm h-32"
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Width (px)</label>
+                  <input
+                    type="number"
+                    value={placementForm.width || ''}
+                    onChange={e => setPlacementForm({ ...placementForm, width: parseInt(e.target.value) })}
+                    className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height (px)</label>
+                  <input
+                    type="number"
+                    value={placementForm.height || ''}
+                    onChange={e => setPlacementForm({ ...placementForm, height: parseInt(e.target.value) })}
+                    className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" /> Save Configuration
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingPlacementId(null)}
+                  className="px-6 border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black uppercase text-xs tracking-widest rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
               </div>
             </form>
           </div>

@@ -27,35 +27,28 @@ const AdBanner: React.FC<AdBannerProps> = ({
 
     if (config.type === 'zone' && config.value) {
       // Adsterra Zone Logic
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = `//www.topcreativeformat.com/${config.value}/invoke.js`;
-      script.async = true;
+      try {
+        const optionsScript = document.createElement('script');
+        optionsScript.type = "text/javascript";
+        optionsScript.text = `
+          atOptions = {
+            'key' : '${config.value}',
+            'format' : 'iframe',
+            'height' : ${config.height},
+            'width' : ${config.width},
+            'params' : {}
+          };
+        `;
+        adRef.current.appendChild(optionsScript);
 
-      // Adsterra options usually need to be global, but if the script is standard invoke.js, 
-      // it might rely on having the container specifically or just global options.
-      // Standard Adsterra: sets global 'atOptions'. This is tricky with multiple banners.
-      // We will assume the simplified invoke URL pattern or just render iframe if possible.
-      // Reverting to standard safe script injection:
-
-      const optionsScript = document.createElement('script');
-      optionsScript.type = "text/javascript";
-      optionsScript.text = `
-        atOptions = {
-          'key' : '${config.value}',
-          'format' : 'iframe',
-          'height' : ${config.height},
-          'width' : ${config.width},
-          'params' : {}
-        };
-      `;
-      // Check if we already have atOptions - actually Adsterra uses unique keys per zone usually.
-      // If we use the simple invoke.js from the previous code:
-      // //www.topcreativeformat.com/${zoneId}/invoke.js
-      // It likely handles it. Let's stick to the previous simple implementation + script injection.
-
-      adRef.current.appendChild(script);
-
+        const invokeScript = document.createElement('script');
+        invokeScript.type = 'text/javascript';
+        invokeScript.src = `//www.topcreativeformat.com/${config.value}/invoke.js`;
+        invokeScript.async = true;
+        adRef.current.appendChild(invokeScript);
+      } catch (e) {
+        console.error('Failed to inject Adsterra script', e);
+      }
     } else if (config.type === 'script' && config.value) {
       // Custom Script Logic
       // Create a range to fragment mechanism to execute scripts
