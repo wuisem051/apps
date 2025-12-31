@@ -17,6 +17,7 @@ export interface Game {
     requirements: string;
     releaseDate?: string;
     downloadUrl: string;
+    sourceUrl?: string;
     createdAt: number;
 }
 
@@ -34,8 +35,8 @@ interface ContentContextType {
 }
 
 const LS_KEYS = {
-    GAMES: 'admin_games_v3', // Incremented version to ensure fresh data structure
-    APPS: 'admin_apps_v3'
+    GAMES: 'admin_games_v4', // Incremented for sourceUrl support
+    APPS: 'admin_apps_v4'
 };
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);

@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import DownloadFlow from '../components/DownloadFlow';
 import AdBanner from '../components/AdBanner';
-import { Star, Download, Users, Calendar, Smartphone, HardDrive, MessageSquare, Send } from 'lucide-react';
+import { Star, Download, Users, Calendar, Smartphone, HardDrive, MessageSquare, Send, Globe } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { useAnalytics } from '../context/AnalyticsContext';
 
@@ -296,6 +296,14 @@ export default function GameDetail() {
                     <span className="text-slate-500">Type</span>
                     <span className="text-slate-800">APK</span>
                   </div>
+                  {game.sourceUrl && (
+                    <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                      <span className="text-slate-500">Source</span>
+                      <a href={game.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-bold">
+                        <Globe className="w-3 h-3" /> Visit Reference
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 

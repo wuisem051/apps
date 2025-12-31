@@ -84,7 +84,8 @@ export default function Admin() {
       developer: '',
       requirements: '',
       releaseDate: '',
-      downloadUrl: ''
+      downloadUrl: '',
+      sourceUrl: ''
     });
     setShowGameForm(true);
   };
@@ -202,15 +203,15 @@ export default function Admin() {
       const image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
 
       if (!showGameForm && !showAppForm) {
-        setGameForm({ title, description, image, downloadUrl: scrapeUrl });
+        setGameForm({ title, description, image, sourceUrl: scrapeUrl, downloadUrl: '' });
         setShowGameForm(true);
-        alert('Content scraped! Opened new Game form with data.');
+        alert('Content scraped! Reference link saved. Please add the Direct Download link (Mediafire).');
       } else if (showGameForm) {
-        setGameForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
-        alert('Content scraped successfully! Review the Game form.');
+        setGameForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
+        alert('Content scraped successfully! Reference link updated.');
       } else if (showAppForm) {
-        setAppForm(prev => ({ ...prev, title, description, image, downloadUrl: scrapeUrl }));
-        alert('Content scraped successfully! Review the App form.');
+        setAppForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
+        alert('Content scraped successfully! Reference link updated.');
       }
     } catch (error) {
       console.error('Scraping error:', error);
@@ -652,7 +653,14 @@ export default function Admin() {
               <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
               <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
               <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-              <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Download URL" className="w-full border p-2 rounded" required />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                <input value={gameForm.sourceUrl || ''} onChange={e => setGameForm({ ...gameForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
+              </div>
               <div className="flex gap-2">
                 <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
                 <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
@@ -671,7 +679,14 @@ export default function Admin() {
               <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
               <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
               <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-              <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Download URL" className="w-full border p-2 rounded" required />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                <input value={appForm.sourceUrl || ''} onChange={e => setAppForm({ ...appForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
+              </div>
               <div className="flex gap-2">
                 <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
                 <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
