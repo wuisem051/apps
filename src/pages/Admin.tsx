@@ -202,14 +202,19 @@ export default function Admin() {
         doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
       const image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
 
+      console.log('Scraped Data:', { title, description, image });
+
       if (!showGameForm && !showAppForm) {
+        console.log('Opening new game form with scraped data');
         setGameForm({ title, description, image, sourceUrl: scrapeUrl, downloadUrl: '' });
         setShowGameForm(true);
         alert('Content scraped! Reference link saved. Please add the Direct Download link (Mediafire).');
       } else if (showGameForm) {
+        console.log('Updating existing game form with scraped data');
         setGameForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
         alert('Content scraped successfully! Reference link updated.');
       } else if (showAppForm) {
+        console.log('Updating existing app form with scraped data');
         setAppForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
         alert('Content scraped successfully! Reference link updated.');
       }
