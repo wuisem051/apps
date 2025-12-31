@@ -165,7 +165,7 @@ export default function GameDetail() {
             </div>
           </div>
 
-          <AdBanner zoneId="game-detail-banner-1" className="my-12" />
+          <AdBanner placementId="game_detail_banner_1" className="my-12" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2 space-y-12">
@@ -279,7 +279,7 @@ export default function GameDetail() {
             </div>
 
             <div className="space-y-8">
-              <AdBanner zoneId="game-detail-sidebar-1" width={300} height={250} className="shadow-sm rounded-2xl overflow-hidden" />
+              <AdBanner placementId="game_detail_sidebar_1" fallbackWidth={300} fallbackHeight={250} className="shadow-sm rounded-2xl overflow-hidden" />
 
               <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function GameDetail() {
                 </Link>
               </section>
 
-              <AdBanner zoneId="game-detail-sidebar-2" width={300} height={250} className="shadow-sm rounded-2xl overflow-hidden" />
+              <AdBanner placementId="game_detail_sidebar_2" fallbackWidth={300} fallbackHeight={250} className="shadow-sm rounded-2xl overflow-hidden" />
             </div>
           </div>
         </div>

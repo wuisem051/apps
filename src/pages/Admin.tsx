@@ -28,18 +28,9 @@ type Game = {
 
 type AppItem = Omit<Game, 'category'> & { appCategory?: string };
 
-type AdSlot = {
-  id: string;
-  zoneId: string;
-  width: number;
-  height: number;
-  active: boolean;
-};
-
 const LS_KEYS = {
   GAMES: 'admin_games_v1',
-  APPS: 'admin_apps_v1',
-  ADS: 'admin_ads_v1'
+  APPS: 'admin_apps_v1'
 };
 
 function generateId(prefix = '') {
@@ -54,7 +45,6 @@ export default function Admin() {
   // Content state
   const [games, setGames] = useState<Game[]>([]);
   const [apps, setApps] = useState<AppItem[]>([]);
-  const [ads, setAds] = useState<AdSlot[]>([]);
 
   // UI state
   const [showGameForm, setShowGameForm] = useState(false);
@@ -65,31 +55,27 @@ export default function Admin() {
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [appForm, setAppForm] = useState<Partial<AppItem>>({});
 
-  const [showAdForm, setShowAdForm] = useState(false);
-  const [editingAdId, setEditingAdId] = useState<string | null>(null);
-  const [adForm, setAdForm] = useState<Partial<AdSlot>>({ zoneId: '', width: 728, height: 90, active: true });
-
   const [scrapeUrl, setScrapeUrl] = useState('');
   const [isScraping, setIsScraping] = useState(false);
 
   // Settings state
-  const { siteName, footerText, updateSettings } = useSiteSettings();
-  const [settingsForm, setSettingsForm] = useState({ siteName: '', footerText: '' });
+  const { siteName, footerText, downloadTimer, adPlacements, updateSettings, updateAdPlacement } = useSiteSettings();
+  const [settingsForm, setSettingsForm] = useState({ siteName: '', footerText: '', downloadTimer: 15 });
   const [showSettings, setShowSettings] = useState(false);
+  const [editingPlacementId, setEditingPlacementId] = useState<string | null>(null);
+  const [placementForm, setPlacementForm] = useState<Partial<import('../context/SiteContext').AdPlacement>>({});
 
   useEffect(() => {
-    setSettingsForm({ siteName, footerText });
-  }, [siteName, footerText, showSettings]);
+    setSettingsForm({ siteName, footerText, downloadTimer });
+  }, [siteName, footerText, downloadTimer, showSettings]);
 
   useEffect(() => {
     // Load persisted data
     try {
       const g = localStorage.getItem(LS_KEYS.GAMES);
       const a = localStorage.getItem(LS_KEYS.APPS);
-      const ad = localStorage.getItem(LS_KEYS.ADS);
       if (g) setGames(JSON.parse(g));
       if (a) setApps(JSON.parse(a));
-      if (ad) setAds(JSON.parse(ad));
     } catch (err) {
       console.error('Failed to load admin data from localStorage', err);
     }
@@ -100,11 +86,10 @@ export default function Admin() {
     try {
       localStorage.setItem(LS_KEYS.GAMES, JSON.stringify(games));
       localStorage.setItem(LS_KEYS.APPS, JSON.stringify(apps));
-      localStorage.setItem(LS_KEYS.ADS, JSON.stringify(ads));
     } catch (err) {
       console.error('Failed to save admin data to localStorage', err);
     }
-  }, [games, apps, ads]);
+  }, [games, apps]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,40 +196,6 @@ export default function Admin() {
     setApps((prev) => prev.filter((a) => a.id !== id));
   };
 
-  // Ads handlers
-  const openNewAdForm = () => {
-    setEditingAdId(null);
-    setAdForm({ zoneId: '', width: 728, height: 90, active: true });
-    setShowAdForm(true);
-  };
-
-  const openEditAdForm = (ad: AdSlot) => {
-    setEditingAdId(ad.id);
-    setAdForm({ ...ad });
-    setShowAdForm(true);
-  };
-
-  const saveAd = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!adForm.zoneId) {
-      alert('Please provide a zoneId for the ad slot.');
-      return;
-    }
-    if (editingAdId) {
-      setAds((prev) => prev.map((a) => (a.id === editingAdId ? { ...(a as AdSlot), ...(adForm as AdSlot) } : a)));
-    } else {
-      const newAd: AdSlot = { id: generateId('ad-'), zoneId: String(adForm.zoneId), width: Number(adForm.width || 728), height: Number(adForm.height || 90), active: Boolean(adForm.active) };
-      setAds((prev) => [newAd, ...prev]);
-    }
-    setShowAdForm(false);
-    setEditingAdId(null);
-    setAdForm({ zoneId: '', width: 728, height: 90, active: true });
-  };
-
-  const deleteAd = (id: string) => {
-    if (!confirm('Delete this ad slot?')) return;
-    setAds((prev) => prev.filter((a) => a.id !== id));
-  };
 
   const handleScrape = async () => {
     if (!scrapeUrl) return;
@@ -486,6 +437,15 @@ export default function Admin() {
                       />
                     </div>
                   </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Download Timer (seconds)</label>
+                    <input
+                      type="number"
+                      value={settingsForm.downloadTimer}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, downloadTimer: parseInt(e.target.value) || 0 })}
+                      className="w-full border border-slate-300 rounded px-3 py-2"
+                    />
+                  </div>
                   <div className="flex justify-end">
                     <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900 flex items-center gap-2">
                       <Save className="w-4 h-4" /> Save Settings
@@ -716,74 +676,126 @@ export default function Admin() {
             <div className="col-span-1 lg:col-span-1">
               <div className="bg-white rounded-lg border border-slate-300 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Ad Slots ({ads.length})</h3>
-                  <button onClick={openNewAdForm} className="text-sm text-green-600 hover:underline flex items-center gap-1">
-                    <PlusCircle className="w-4 h-4" /> New
-                  </button>
+                  <h3 className="text-lg font-semibold">Ad Placements</h3>
                 </div>
 
-                {ads.length === 0 ? (
-                  <p className="text-sm text-slate-500">No ad slots configured yet.</p>
-                ) : (
-                  <ul className="space-y-4">
-                    {ads.map((ad) => (
-                      <li key={ad.id} className="border border-slate-100 rounded p-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="font-medium text-slate-800">{ad.zoneId}</div>
-                            <div className="text-sm text-slate-500">{ad.width}x{ad.height} • {ad.active ? 'Active' : 'Inactive'}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button title="Preview" className="p-2 rounded-md hover:bg-slate-100" onClick={() => openEditAdForm(ad)}>
-                              <Eye className="w-4 h-4 text-slate-600" />
-                            </button>
-                            <button title="Delete" onClick={() => deleteAd(ad.id)} className="p-2 rounded-md hover:bg-slate-100">
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </button>
-                          </div>
+                <div className="space-y-4">
+                  {adPlacements && Object.values(adPlacements).map((placement) => (
+                    <div key={placement.id} className="border border-slate-100 rounded p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium text-slate-800 text-sm">{placement.name}</div>
+                          <div className="text-xs text-slate-500">{placement.width}x{placement.height} • {placement.active ? 'Active' : 'Inactive'}</div>
                         </div>
-
-                        <div className="mt-3">
-                          <div className="w-full bg-slate-50 border border-slate-100 rounded p-2 flex items-center justify-center">
-                            <AdBanner zoneId={ad.zoneId} width={ad.width} height={ad.height} />
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            title="Edit"
+                            className="p-1.5 rounded-md hover:bg-slate-100"
+                            onClick={() => {
+                              setEditingPlacementId(placement.id);
+                              setPlacementForm(placement);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 text-slate-600" />
+                          </button>
                         </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {showAdForm && (
+              {editingPlacementId && (
                 <div className="mt-4 bg-white rounded-lg border border-slate-300 p-6">
-                  <h4 className="text-lg font-semibold mb-3">{editingAdId ? 'Edit Ad Slot' : 'Add Ad Slot'}</h4>
-                  <form onSubmit={saveAd} className="space-y-3">
+                  <h4 className="text-lg font-semibold mb-3">Edit Placement</h4>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editingPlacementId) {
+                      updateAdPlacement(editingPlacementId, placementForm);
+                      setEditingPlacementId(null);
+                      alert('Placement updated!');
+                    }
+                  }} className="space-y-3">
                     <div>
-                      <label className="block text-sm text-slate-700 mb-1">Zone ID</label>
-                      <input value={adForm.zoneId || ''} onChange={(e) => setAdForm({ ...adForm, zoneId: e.target.value })} className="w-full border border-slate-300 rounded px-3 py-2" required />
+                      <label className="block text-sm text-slate-700 mb-1">Type</label>
+                      <select
+                        value={placementForm.type}
+                        onChange={(e) => setPlacementForm({ ...placementForm, type: e.target.value as any })}
+                        className="w-full border border-slate-300 rounded px-3 py-2"
+                      >
+                        <option value="zone">Adsterra Zone</option>
+                        <option value="script">Custom Script</option>
+                      </select>
                     </div>
+
+                    {placementForm.type === 'zone' ? (
+                      <div>
+                        <label className="block text-sm text-slate-700 mb-1">Zone ID</label>
+                        <input
+                          value={placementForm.value || ''}
+                          onChange={(e) => setPlacementForm({ ...placementForm, value: e.target.value })}
+                          className="w-full border border-slate-300 rounded px-3 py-2"
+                          placeholder="e.g. 12345678"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm text-slate-700 mb-1">Script / HTML</label>
+                        <textarea
+                          value={placementForm.value || ''}
+                          onChange={(e) => setPlacementForm({ ...placementForm, value: e.target.value })}
+                          className="w-full border border-slate-300 rounded px-3 py-2 font-mono text-xs"
+                          rows={4}
+                          placeholder="<script>...</script>"
+                        />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-sm text-slate-700 mb-1">Width</label>
-                        <input type="number" value={adForm.width || 728} onChange={(e) => setAdForm({ ...adForm, width: Number(e.target.value) })} className="w-full border border-slate-300 rounded px-3 py-2" />
+                        <select
+                          value={placementForm.width}
+                          onChange={(e) => setPlacementForm({ ...placementForm, width: Number(e.target.value) })}
+                          className="w-full border border-slate-300 rounded px-3 py-2"
+                        >
+                          <option value="728">728 (Leaderboard)</option>
+                          <option value="300">300 (Medium Rect)</option>
+                          <option value="160">160 (Skyscraper)</option>
+                          <option value="320">320 (Mobile)</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm text-slate-700 mb-1">Height</label>
-                        <input type="number" value={adForm.height || 90} onChange={(e) => setAdForm({ ...adForm, height: Number(e.target.value) })} className="w-full border border-slate-300 rounded px-3 py-2" />
+                        <select
+                          value={placementForm.height}
+                          onChange={(e) => setPlacementForm({ ...placementForm, height: Number(e.target.value) })}
+                          className="w-full border border-slate-300 rounded px-3 py-2"
+                        >
+                          <option value="90">90 (Leaderboard)</option>
+                          <option value="250">250 (Medium Rect)</option>
+                          <option value="600">600 (Skyscraper)</option>
+                          <option value="50">50 (Mobile)</option>
+                        </select>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-3">
                       <label className="inline-flex items-center gap-2">
-                        <input type="checkbox" checked={!!adForm.active} onChange={(e) => setAdForm({ ...adForm, active: e.target.checked })} />
+                        <input
+                          type="checkbox"
+                          checked={!!placementForm.active}
+                          onChange={(e) => setPlacementForm({ ...placementForm, active: e.target.checked })}
+                        />
                         <span className="text-sm text-slate-700">Active</span>
                       </label>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
-                        <Check className="w-4 h-4" /> {editingAdId ? 'Save' : 'Create'}
+                      <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                        <Check className="w-4 h-4" /> Save
                       </button>
-                      <button type="button" onClick={() => { setShowAdForm(false); setEditingAdId(null); setAdForm({ zoneId: '', width: 728, height: 90, active: true }); }} className="px-4 py-2 rounded-md border border-slate-300">
+                      <button type="button" onClick={() => setEditingPlacementId(null)} className="px-4 py-2 rounded-md border border-slate-300">
                         Cancel
                       </button>
                     </div>

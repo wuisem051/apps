@@ -8,16 +8,27 @@ interface DownloadFlowProps {
   onDownloadComplete: () => void;
 }
 
-const DownloadFlow: React.FC<DownloadFlowProps> = ({ 
-  gameTitle, 
-  downloadUrl, 
-  onDownloadComplete 
+import { useSiteSettings } from '../context/SiteContext';
+
+interface DownloadFlowProps {
+  gameTitle: string;
+  downloadUrl: string;
+  onDownloadComplete: () => void;
+}
+
+const DownloadFlow: React.FC<DownloadFlowProps> = ({
+  gameTitle,
+  downloadUrl,
+  onDownloadComplete
 }) => {
+  const { downloadTimer } = useSiteSettings();
   const [step, setStep] = useState(1);
-  const [countdown, setCountdown] = useState(15);
+  const [countdown, setCountdown] = useState(downloadTimer || 15);
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
+    // Reset countdown if timer setting changes, but only if we haven't started (optional refinement)
+    // For now, simple init is enough, but let's sync it for step 2
     if (step === 2 && countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
@@ -27,6 +38,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
   }, [step, countdown]);
 
   const handleStartDownload = () => {
+    setCountdown(downloadTimer || 15); // Ensure we start with fresh timer
     setStep(2);
   };
 
@@ -51,11 +63,10 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                i <= step
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i <= step
                   ? 'bg-purple-600 text-white'
                   : 'bg-slate-200 text-slate-500'
-              }`}
+                }`}
             >
               {i}
             </div>
@@ -65,7 +76,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
 
       {step === 1 && (
         <div className="text-center space-y-6">
-          <AdBanner zoneId="banner-zone-1" className="mb-4" />
+          <AdBanner placementId="download_step_1" className="mb-4" />
           <div className="space-y-4">
             <AlertCircle className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Prepare Download</h3>
@@ -84,7 +95,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
 
       {step === 2 && (
         <div className="text-center space-y-6">
-          <AdBanner zoneId="banner-zone-2" className="mb-4" />
+          <AdBanner placementId="download_step_2" className="mb-4" />
           <div className="space-y-4">
             <Clock className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Please Wait</h3>
@@ -95,7 +106,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
             <div className="w-full bg-slate-200 rounded-full h-2">
               <div
                 className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${((15 - countdown) / 15) * 100}%` }}
+                style={{ width: `${((downloadTimer - countdown) / downloadTimer) * 100}%` }}
               />
             </div>
           </div>
@@ -104,7 +115,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
 
       {step === 3 && (
         <div className="text-center space-y-6">
-          <AdBanner zoneId="banner-zone-3" className="mb-4" />
+          <AdBanner placementId="download_step_3" className="mb-4" />
           <div className="space-y-4">
             <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Verification Required</h3>
@@ -124,7 +135,7 @@ const DownloadFlow: React.FC<DownloadFlowProps> = ({
 
       {step === 4 && (
         <div className="text-center space-y-6">
-          <AdBanner zoneId="banner-zone-4" className="mb-4" />
+          <AdBanner placementId="download_step_4" className="mb-4" />
           <div className="space-y-4">
             <Download className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Download Ready!</h3>

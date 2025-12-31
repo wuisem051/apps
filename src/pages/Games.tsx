@@ -35,7 +35,7 @@ export default function Games() {
             </p>
           </div>
 
-          <AdBanner zoneId="games-banner-1" className="mb-8" />
+          <AdBanner placementId="games_banner_1" className="mb-8" />
 
           <div className="flex flex-col lg:flex-row gap-8">
             <aside className="lg:w-64">
@@ -77,8 +77,8 @@ export default function Games() {
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-lg ${viewMode === 'grid'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-white text-slate-600 border border-slate-300'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white text-slate-600 border border-slate-300'
                       }`}
                   >
                     <Grid className="w-5 h-5" />
@@ -86,8 +86,8 @@ export default function Games() {
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded-lg ${viewMode === 'list'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-white text-slate-600 border border-slate-300'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white text-slate-600 border border-slate-300'
                       }`}
                   >
                     <List className="w-5 h-5" />
@@ -96,8 +96,8 @@ export default function Games() {
               </div>
 
               <div className={`grid gap-6 ${viewMode === 'grid'
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                  : 'grid-cols-1'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1'
                 }`}>
                 {filteredGames.map((game) => (
                   <GameCard key={game.id} {...game} />

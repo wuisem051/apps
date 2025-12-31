@@ -1,17 +1,46 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export type AdPlacement = {
+    id: string;
+    name: string;
+    type: 'zone' | 'script';
+    value: string; // zoneId or script code
+    width: number;
+    height: number;
+    active: boolean;
+};
+
 type SiteSettings = {
     siteName: string;
     footerText: string;
+    downloadTimer: number;
+    adPlacements: Record<string, AdPlacement>;
 };
 
 type SiteContextType = SiteSettings & {
     updateSettings: (settings: Partial<SiteSettings>) => void;
+    updateAdPlacement: (id: string, placement: Partial<AdPlacement>) => void;
+};
+
+const DEFAULT_PLACEMENTS: Record<string, AdPlacement> = {
+    'home_banner_1': { id: 'home_banner_1', name: 'Home Banner Top', type: 'zone', value: '', width: 728, height: 90, active: true },
+    'home_banner_2': { id: 'home_banner_2', name: 'Home Banner Bottom', type: 'zone', value: '', width: 728, height: 90, active: true },
+    'games_banner_1': { id: 'games_banner_1', name: 'Games List Banner', type: 'zone', value: '', width: 728, height: 90, active: true },
+    'apps_banner_1': { id: 'apps_banner_1', name: 'Apps List Banner', type: 'zone', value: '', width: 728, height: 90, active: true },
+    'game_detail_banner_1': { id: 'game_detail_banner_1', name: 'Game Detail Main', type: 'zone', value: '', width: 728, height: 90, active: true },
+    'game_detail_sidebar_1': { id: 'game_detail_sidebar_1', name: 'Game Detail Sidebar 1', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'game_detail_sidebar_2': { id: 'game_detail_sidebar_2', name: 'Game Detail Sidebar 2', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_1': { id: 'download_step_1', name: 'Download Step 1', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_2': { id: 'download_step_2', name: 'Download Step 2', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_3': { id: 'download_step_3', name: 'Download Step 3', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_4': { id: 'download_step_4', name: 'Download Step 4 (Final)', type: 'zone', value: '', width: 300, height: 250, active: true },
 };
 
 const DEFAULT_SETTINGS: SiteSettings = {
     siteName: 'APKVault',
     footerText: '© 2025 APKVault. All rights reserved.',
+    downloadTimer: 15,
+    adPlacements: DEFAULT_PLACEMENTS,
 };
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
@@ -38,8 +67,21 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
+    const updateAdPlacement = (id: string, placement: Partial<AdPlacement>) => {
+        setSettings(prev => {
+            const currentPlacements = prev.adPlacements || DEFAULT_PLACEMENTS;
+            const updatedPlacements = {
+                ...currentPlacements,
+                [id]: { ...currentPlacements[id], ...placement }
+            };
+            const next = { ...prev, adPlacements: updatedPlacements };
+            localStorage.setItem('site_settings_v1', JSON.stringify(next));
+            return next;
+        });
+    };
+
     return (
-        <SiteContext.Provider value={{ ...settings, updateSettings }}>
+        <SiteContext.Provider value={{ ...settings, updateSettings, updateAdPlacement }}>
             {children}
         </SiteContext.Provider>
     );

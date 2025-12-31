@@ -73,7 +73,7 @@ export default function Home() {
         {/* Ad Banner */}
         <section className="py-8 bg-slate-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-            <AdBanner zoneId="home-banner-1" width={728} height={90} className="shadow-sm rounded-lg overflow-hidden" />
+            <AdBanner placementId="home_banner_1" fallbackWidth={728} fallbackHeight={90} className="shadow-sm rounded-lg overflow-hidden" />
           </div>
         </section>
 
@@ -110,7 +110,7 @@ export default function Home() {
         {/* Ad Banner */}
         <section className="py-8 bg-slate-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-            <AdBanner zoneId="home-banner-2" width={728} height={90} className="shadow-sm rounded-lg overflow-hidden" />
+            <AdBanner placementId="home_banner_2" fallbackWidth={728} fallbackHeight={90} className="shadow-sm rounded-lg overflow-hidden" />
           </div>
         </section>
       </main>
