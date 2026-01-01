@@ -4,6 +4,7 @@ import { Download, Star, ExternalLink, Zap } from 'lucide-react';
 
 interface GameCardProps {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   image: string;
@@ -15,6 +16,7 @@ interface GameCardProps {
 
 const GameCard: React.FC<GameCardProps> = ({
   id,
+  slug,
   title,
   description,
   image,
@@ -23,6 +25,7 @@ const GameCard: React.FC<GameCardProps> = ({
   size,
   category
 }) => {
+  const detailLink = `/game/${slug || id}`;
   return (
     <div className="group relative bg-white rounded-3xl border border-slate-200 overflow-hidden hover:border-purple-300 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(124,58,237,0.1)] flex flex-col h-full animate-fade-up">
       <div className="aspect-[16/10] relative overflow-hidden">
@@ -73,14 +76,14 @@ const GameCard: React.FC<GameCardProps> = ({
 
         <div className="mt-6 flex gap-2">
           <Link
-            to={`/game/${id}`}
+            to={detailLink}
             className="flex-1 bg-slate-900 hover:bg-black text-white py-3.5 px-4 rounded-2xl flex items-center justify-center space-x-2 transition-all duration-300 font-bold text-sm shadow-lg hover:shadow-slate-200"
           >
             <Download className="w-4 h-4" />
             <span>Get APK</span>
           </Link>
           <Link
-            to={`/game/${id}`}
+            to={detailLink}
             className="w-12 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl flex items-center justify-center transition-all duration-300 group/link"
           >
             <ExternalLink className="w-5 h-5 group-hover/link:scale-110 transition-transform" />

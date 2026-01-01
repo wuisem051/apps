@@ -16,6 +16,7 @@ import { db } from '../firebase';
 
 export interface Game {
     id: string;
+    slug: string;
     title: string;
     description: string;
     longDescription?: string;
@@ -31,6 +32,9 @@ export interface Game {
     releaseDate?: string;
     downloadUrl: string;
     sourceUrl?: string;
+    seoTitle?: string;
+    metaDescription?: string;
+    focusKeywords?: string;
     createdAt: number;
 }
 

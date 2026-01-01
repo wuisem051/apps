@@ -21,6 +21,18 @@ function generateId(prefix = '') {
   return `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with -
+    .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+    .replace(/--+/g, '-')     // Replace multiple - with single -
+    .replace(/^-+/, '')       // Trim - from start of text
+    .replace(/-+$/, '');      // Trim - from end of text
+}
+
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +43,7 @@ export default function Admin() {
   const { logs, clearLogs } = useAnalytics();
 
   const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics'>('content');
+  const [statsPeriod, setStatsPeriod] = useState<'daily' | 'monthly'>('daily');
 
   // UI state
   const [showGameForm, setShowGameForm] = useState(false);
@@ -74,6 +87,7 @@ export default function Admin() {
     setEditingGameId(null);
     setGameForm({
       title: '',
+      slug: '',
       description: '',
       image: '',
       rating: 4.0,
@@ -85,7 +99,10 @@ export default function Admin() {
       requirements: '',
       releaseDate: '',
       downloadUrl: '',
-      sourceUrl: ''
+      sourceUrl: '',
+      seoTitle: '',
+      metaDescription: '',
+      focusKeywords: ''
     });
     setShowGameForm(true);
   };
@@ -103,10 +120,12 @@ export default function Admin() {
       return;
     }
     if (editingGameId) {
-      updateGame({ ...(gameForm as Game), id: editingGameId });
+      updateGame({ ...(gameForm as Game), id: editingGameId, slug: gameForm.slug || slugify(gameForm.title || '') });
     } else {
+      const title = gameForm.title || '';
       const newGame: Game = {
         title: '',
+        slug: gameForm.slug || slugify(title),
         description: '',
         image: '',
         rating: 4.0,
@@ -133,6 +152,7 @@ export default function Admin() {
     setEditingAppId(null);
     setAppForm({
       title: '',
+      slug: '',
       description: '',
       image: '',
       rating: 4.0,
@@ -143,7 +163,10 @@ export default function Admin() {
       developer: 'Unknown',
       requirements: 'Android 5.0+',
       releaseDate: '',
-      downloadUrl: ''
+      downloadUrl: '',
+      seoTitle: '',
+      metaDescription: '',
+      focusKeywords: ''
     });
     setShowAppForm(true);
   };
@@ -161,10 +184,12 @@ export default function Admin() {
       return;
     }
     if (editingAppId) {
-      updateApp({ ...(appForm as AppItem), id: editingAppId });
+      updateApp({ ...(appForm as AppItem), id: editingAppId, slug: appForm.slug || slugify(appForm.title || '') });
     } else {
+      const title = appForm.title || '';
       const newApp: AppItem = {
         title: '',
+        slug: appForm.slug || slugify(title),
         description: '',
         image: '',
         rating: 4.0,
@@ -206,16 +231,19 @@ export default function Admin() {
 
       if (!showGameForm && !showAppForm) {
         console.log('Opening new game form with scraped data');
-        setGameForm({ title, description, image, sourceUrl: scrapeUrl, downloadUrl: '' });
+        const slug = slugify(title);
+        setGameForm({ title, slug, description, image, sourceUrl: scrapeUrl, downloadUrl: '', seoTitle: title, metaDescription: description });
         setShowGameForm(true);
         alert('Content scraped! Reference link saved. Please add the Direct Download link (Mediafire).');
       } else if (showGameForm) {
         console.log('Updating existing game form with scraped data');
-        setGameForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
+        const slug = gameForm.slug || slugify(title);
+        setGameForm(prev => ({ ...prev, title, slug, description, image, sourceUrl: scrapeUrl, seoTitle: title, metaDescription: description }));
         alert('Content scraped successfully! Reference link updated.');
       } else if (showAppForm) {
         console.log('Updating existing app form with scraped data');
-        setAppForm(prev => ({ ...prev, title, description, image, sourceUrl: scrapeUrl }));
+        const slug = appForm.slug || slugify(title);
+        setAppForm(prev => ({ ...prev, title, slug, description, image, sourceUrl: scrapeUrl, seoTitle: title, metaDescription: description }));
         alert('Content scraped successfully! Reference link updated.');
       }
     } catch (error) {
@@ -245,11 +273,35 @@ export default function Admin() {
     return last7Days.map(date => {
       const dayLogs = logs.filter(l => new Date(l.timestamp).toISOString().split('T')[0] === date);
       return {
-        date,
+        label: date,
         visits: dayLogs.filter(l => l.type === 'visit').length,
         downloads: dayLogs.filter(l => l.type === 'download').length
       };
     });
+  };
+
+  const getMonthlyStats = () => {
+    const months: Record<string, { visits: number; downloads: number }> = {};
+
+    logs.forEach(l => {
+      const date = new Date(l.timestamp);
+      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+
+      if (!months[monthKey]) {
+        months[monthKey] = { visits: 0, downloads: 0 };
+      }
+
+      if (l.type === 'visit') months[monthKey].visits++;
+      if (l.type === 'download') months[monthKey].downloads++;
+    });
+
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, stats]) => ({
+        label,
+        ...stats
+      }))
+      .slice(-6); // Last 6 months
   };
 
   const getTopContent = (type: 'view' | 'download' = 'view') => {
@@ -609,10 +661,27 @@ export default function Admin() {
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Traffic & Interaction (7D)</h3>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Traffic & Interaction</h3>
+                    <div className="flex bg-slate-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setStatsPeriod('daily')}
+                        className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'daily' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Daily
+                      </button>
+                      <button
+                        onClick={() => setStatsPeriod('monthly')}
+                        className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'monthly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Monthly
+                      </button>
+                    </div>
+                  </div>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={getDailyStats()}>
+                      <AreaChart data={statsPeriod === 'daily' ? getDailyStats() : getMonthlyStats()}>
+                        <XAxis dataKey="label" hide />
                         <defs>
                           <linearGradient id="cV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
                           <linearGradient id="cD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
@@ -692,10 +761,41 @@ export default function Admin() {
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
             <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
             <form onSubmit={saveGame} className="space-y-4">
-              <input value={gameForm.title || ''} onChange={e => setGameForm({ ...gameForm, title: e.target.value })} placeholder="Title" className="w-full border p-2 rounded" required />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                  <input value={gameForm.title || ''} onChange={e => {
+                    const newTitle = e.target.value;
+                    setGameForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                  }} placeholder="Title" className="w-full border p-2 rounded" required />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                  <input value={gameForm.slug || ''} onChange={e => setGameForm({ ...gameForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
+                </div>
+              </div>
               <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
               <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
               <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1 col-span-full">
+                  <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                  <input value={gameForm.seoTitle || ''} onChange={e => setGameForm({ ...gameForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                  <input value={gameForm.metaDescription || ''} onChange={e => setGameForm({ ...gameForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                  <input value={gameForm.focusKeywords || ''} onChange={e => setGameForm({ ...gameForm, focusKeywords: e.target.value })} placeholder="game, mod, apk" className="w-full border p-2 rounded text-xs" />
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
                 <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
@@ -718,10 +818,41 @@ export default function Admin() {
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
             <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
             <form onSubmit={saveApp} className="space-y-4">
-              <input value={appForm.title || ''} onChange={e => setAppForm({ ...appForm, title: e.target.value })} placeholder="Title" className="w-full border p-2 rounded" required />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                  <input value={appForm.title || ''} onChange={e => {
+                    const newTitle = e.target.value;
+                    setAppForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                  }} placeholder="Title" className="w-full border p-2 rounded" required />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                  <input value={appForm.slug || ''} onChange={e => setAppForm({ ...appForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
+                </div>
+              </div>
               <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
               <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
               <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1 col-span-full">
+                  <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                  <input value={appForm.seoTitle || ''} onChange={e => setAppForm({ ...appForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                  <input value={appForm.metaDescription || ''} onChange={e => setAppForm({ ...appForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                  <input value={appForm.focusKeywords || ''} onChange={e => setAppForm({ ...appForm, focusKeywords: e.target.value })} placeholder="app, utility, tool" className="w-full border p-2 rounded text-xs" />
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
                 <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />

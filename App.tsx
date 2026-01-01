@@ -45,7 +45,7 @@ const App: React.FC = () => {
                   <Route path="/apps" element={<Apps />} />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/dev" element={<Admin />} />
-                  <Route path="/game/:id" element={<GameDetail />} />
+                  <Route path="/game/:slug" element={<GameDetail />} />
                   <Route path="/p/:slug" element={<StaticPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

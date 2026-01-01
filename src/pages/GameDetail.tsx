@@ -11,7 +11,7 @@ import { useAnalytics } from '../context/AnalyticsContext';
 export default function GameDetail() {
   const { games, apps } = useContent();
   const { trackEvent } = useAnalytics();
-  const { id } = useParams();
+  const { slug } = useParams();
   const [showDownloadFlow, setShowDownloadFlow] = useState(false);
   const [reviews, setReviews] = useState([
     { id: 1, user: 'John Doe', rating: 5, comment: 'Amazing game! The graphics are incredible.', date: '2 days ago' },
@@ -22,16 +22,25 @@ export default function GameDetail() {
   // Combine games and apps to search for the specific item
   const allContent = [...games, ...apps.map(a => ({ ...a, category: a.appCategory || 'App' }))];
 
-  // Get current item from combined content
-  const game = allContent.find(g => g.id === id) || (games[0] || allContent[0]);
+  // Get current item from combined content (check slug first, then id for fallback)
+  const game = allContent.find(g => g.slug === slug || g.id === slug) || (games[0] || allContent[0]);
 
   useEffect(() => {
-    if (game) {
+    if (game && game.id) {
+      // Update Document Meta for SEO
+      document.title = game.seoTitle || `${game.title} - APK Download`;
+
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', game.metaDescription || game.description.slice(0, 160));
+      }
+
+      // Track View
       trackEvent('view', { itemId: game.id, itemTitle: game.title });
     }
-  }, [game.id]);
+  }, [game?.id, game?.slug, trackEvent]);
 
-  const relatedGames = allContent.filter(g => g.category === game.category && g.id !== id).slice(0, 3);
+  const relatedGames = allContent.filter(g => g.category === game.category && g.slug !== slug && g.id !== slug).slice(0, 3);
 
   const handleDownloadClick = () => {
     setShowDownloadFlow(true);
@@ -57,7 +66,7 @@ export default function GameDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [slug]);
 
   if (showDownloadFlow) {
     return (
@@ -316,7 +325,7 @@ export default function GameDetail() {
                   {relatedGames.map((rg) => (
                     <Link
                       key={rg.id}
-                      to={`/game/${rg.id}`}
+                      to={`/game/${rg.slug || rg.id}`}
                       className="flex items-center gap-4 group"
                     >
                       <img
