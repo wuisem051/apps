@@ -96,10 +96,10 @@ export default function Redirect() {
                 <div
                   key={i}
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black border-2 transition-all ${i === step
-                      ? 'bg-white text-purple-600 border-white shadow-lg scale-110'
-                      : i < step
-                        ? 'bg-purple-500/50 text-white border-white/20'
-                        : 'bg-transparent text-white/50 border-white/10'
+                    ? 'bg-white text-purple-600 border-white shadow-lg scale-110'
+                    : i < step
+                      ? 'bg-purple-500/50 text-white border-white/20'
+                      : 'bg-transparent text-white/50 border-white/10'
                     }`}
                 >
                   {i}
@@ -113,7 +113,7 @@ export default function Redirect() {
 
               {step === 1 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="redirect_step_1" className="mb-8" />
+                  <AdBanner placementId="download_step_1" className="mb-8" />
                   <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Clock className="w-12 h-12 text-purple-600" />
                   </div>
@@ -133,7 +133,7 @@ export default function Redirect() {
 
               {step === 2 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="redirect_step_2" className="mb-8" />
+                  <AdBanner placementId="download_step_2" className="mb-8" />
                   <div className="relative w-40 h-40 mx-auto">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
@@ -158,7 +158,7 @@ export default function Redirect() {
 
               {step === 3 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="redirect_step_3" className="mb-8" />
+                  <AdBanner placementId="download_step_3" className="mb-8" />
                   <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="w-12 h-12 text-blue-600" />
                   </div>
@@ -185,7 +185,7 @@ export default function Redirect() {
 
               {step === 4 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="redirect_step_4" className="mb-8" />
+                  <AdBanner placementId="download_step_4" className="mb-8" />
                   <div className="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-xl">
                     <ExternalLink className="w-16 h-16 text-green-600" />
                   </div>
@@ -208,7 +208,7 @@ export default function Redirect() {
 
               <div className="mt-12 pt-8 border-t border-slate-100">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Sponsored Resources</h3>
-                <AdBanner placementId="redirect_bottom" />
+                <AdBanner placementId="game_detail_banner_1" />
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function Redirect() {
         </div>
 
         <div className="space-y-6 mt-8">
-          <AdBanner placementId="redirect_sidebar" className="rounded-2xl border border-slate-200" />
+          <AdBanner placementId="game_detail_sidebar_1" className="rounded-2xl border border-slate-200" />
         </div>
       </main>
 
