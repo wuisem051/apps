@@ -77,11 +77,18 @@ const AdBanner: React.FC<AdBannerProps> = ({
   return (
     <div className={`flex justify-center items-center my-4 ${className}`}>
       <div
-        ref={adRef}
         style={{ width: `${config.width || fallbackWidth}px`, height: `${config.height || fallbackHeight}px` }}
-        className="bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden"
+        className="bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden relative"
       >
-        {!config.value && <div className="text-slate-400 text-xs text-center p-2">Ad Space<br />({placementId})</div>}
+        {/* Placeholder - Managed by React */}
+        {!config.value && (
+          <div className="text-slate-400 text-xs text-center p-2 z-0">
+            Ad Space<br />({placementId})
+          </div>
+        )}
+
+        {/* Ad Container - Managed manually by Script, isolated from React children */}
+        <div ref={adRef} className="absolute inset-0 z-10" />
       </div>
     </div>
   );
