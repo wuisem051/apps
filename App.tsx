@@ -12,6 +12,7 @@ import Categories from './src/pages/Categories';
 import Admin from './src/pages/Admin';
 import GameDetail from './src/pages/GameDetail';
 import StaticPage from './src/pages/StaticPage';
+import Redirect from './src/pages/Redirect';
 import NotFound from './src/pages/NotFound';
 
 import { SiteProvider } from './src/context/SiteContext';
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                   <Route path="/dev" element={<Admin />} />
                   <Route path="/game/:slug" element={<GameDetail />} />
                   <Route path="/p/:slug" element={<StaticPage />} />
+                  <Route path="/redirect" element={<Redirect />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <ToastContainer
