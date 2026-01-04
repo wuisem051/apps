@@ -22,8 +22,10 @@ const AdBanner: React.FC<AdBannerProps> = ({
   useEffect(() => {
     if (!config || !config.active || !adRef.current) return;
 
+    const container = adRef.current;
+
     // Clear previous content
-    adRef.current.innerHTML = '';
+    container.innerHTML = '';
 
     if (config.type === 'zone' && config.value) {
       // Adsterra Zone Logic
@@ -39,30 +41,36 @@ const AdBanner: React.FC<AdBannerProps> = ({
             'params' : {}
           };
         `;
-        adRef.current.appendChild(optionsScript);
+        container.appendChild(optionsScript);
 
         const invokeScript = document.createElement('script');
         invokeScript.type = 'text/javascript';
         invokeScript.src = `//www.topcreativeformat.com/${config.value}/invoke.js`;
         invokeScript.async = true;
-        adRef.current.appendChild(invokeScript);
+        container.appendChild(invokeScript);
       } catch (e) {
         console.error('Failed to inject Adsterra script', e);
       }
     } else if (config.type === 'script' && config.value) {
       // Custom Script Logic
-      // Create a range to fragment mechanism to execute scripts
       try {
         const range = document.createRange();
-        range.selectNode(adRef.current);
+        range.selectNode(container);
         const documentFragment = range.createContextualFragment(config.value);
-        adRef.current.appendChild(documentFragment);
+        container.appendChild(documentFragment);
       } catch (e) {
         console.error('Failed to inject ad script', e);
-        adRef.current.textContent = 'Ad Error';
+        container.textContent = 'Ad Error';
       }
     }
-  }, [config]);
+
+    // Cleanup function to prevent removeChild errors on unmount/re-render
+    return () => {
+      if (container) {
+        container.innerHTML = '';
+      }
+    };
+  }, [config, placementId]);
 
   if (!config || !config.active) return null;
 
