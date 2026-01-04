@@ -777,7 +777,7 @@ export default function Admin() {
   (function() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
-      var siteUrl = window.location.origin;
+      var siteUrl = "${window.location.origin}";
       var links = document.querySelectorAll('a[href*="mediafire.com"]');
       links.forEach(function(link) {
         var originalUrl = link.href;
@@ -796,7 +796,7 @@ export default function Admin() {
   (function() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
-      var siteUrl = window.location.origin;
+      var siteUrl = "${window.location.origin}";
       var links = document.querySelectorAll('a[href*="mediafire.com"]');
       links.forEach(function(link) {
         var originalUrl = link.href;
