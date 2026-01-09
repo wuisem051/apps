@@ -48,7 +48,9 @@ const DEFAULT_PLACEMENTS: Record<string, AdPlacement> = {
     'download_step_1': { id: 'download_step_1', name: 'Download Step 1', type: 'zone', value: '', width: 300, height: 250, active: true },
     'download_step_2': { id: 'download_step_2', name: 'Download Step 2', type: 'zone', value: '', width: 300, height: 250, active: true },
     'download_step_3': { id: 'download_step_3', name: 'Download Step 3', type: 'zone', value: '', width: 300, height: 250, active: true },
-    'download_step_4': { id: 'download_step_4', name: 'Download Step 4 (Final)', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_4': { id: 'download_step_4', name: 'Download Step 4', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_5': { id: 'download_step_5', name: 'Download Step 5', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'download_step_6': { id: 'download_step_6', name: 'Download Step 6 (Final)', type: 'zone', value: '', width: 300, height: 250, active: true },
 };
 
 const DEFAULT_SETTINGS: SiteSettings = {

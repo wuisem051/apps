@@ -22,6 +22,8 @@ export default function Redirect() {
   const [countdown, setCountdown] = useState(siteTimer || 15);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  const [hasFollowed, setHasFollowed] = useState(false);
+
   useEffect(() => {
     if (targetUrl) {
       trackEvent('redirect', { itemId: `step_${step}`, itemTitle: targetUrl });
@@ -34,23 +36,44 @@ export default function Redirect() {
       return;
     }
 
-    if (step === 2 && countdown > 0) {
+    // Step 3 is now the countdown (Security Check)
+    if (step === 3 && countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (step === 2 && countdown === 0) {
-      setStep(3);
+    } else if (step === 3 && countdown === 0) {
+      setStep(4);
+    }
+
+    // Step 5 auto-advance (Server Handshake)
+    if (step === 5) {
+      const timer = setTimeout(() => setStep(6), 3000);
+      return () => clearTimeout(timer);
     }
   }, [step, countdown, targetUrl, navigate]);
 
+  const handleTikTokFollow = () => {
+    window.open('https://www.tiktok.com/@inyectoryt', '_blank');
+    setHasFollowed(true);
+  };
+
   const handleStart = () => {
-    setStep(2);
+    // Current Step 1 (TikTok) -> Next Step 2 (Prepare Link)
+    if (hasFollowed) {
+      setStep(2);
+    }
+  };
+
+  const handlePrepare = () => {
+    // Current Step 2 (Prepare) -> Next Step 3 (Countdown)
+    setStep(3);
   };
 
   const handleVerify = () => {
+    // Current Step 4 (Human Verify) -> Next Step 5 (Handshake)
     setIsVerifying(true);
     setTimeout(() => {
       setIsVerifying(false);
-      setStep(4);
+      setStep(5);
     }, 2000);
   };
 
@@ -96,13 +119,13 @@ export default function Redirect() {
               </div>
               <div>
                 <div className="inline-flex px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-black text-white uppercase tracking-widest mb-2 border border-white/10">
-                  {t.redirect.step} {step} {t.redirect.of} 4
+                  {t.redirect.step} {step} {t.redirect.of} 6
                 </div>
                 <h1 className="text-3xl font-black text-white uppercase tracking-tight">{t.redirect.externalResource}</h1>
               </div>
             </div>
             <div className="hidden md:flex gap-2">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black border-2 transition-all ${i === step
@@ -124,6 +147,47 @@ export default function Redirect() {
               {step === 1 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <AdBanner placementId="download_step_1" className="mb-8" />
+                  <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-bounce">REQUIRED</span>
+                    <svg viewBox="0 0 24 24" className="w-12 h-12 text-purple-600 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2">{t.redirect.tiktokStepTitle}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.tiktokStepDesc}</p>
+                  </div>
+
+                  <div className="flex flex-col gap-4 max-w-md mx-auto">
+                    <button
+                      onClick={handleTikTokFollow}
+                      className={`w-full py-4 rounded-xl font-black text-lg uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-3 ${hasFollowed ? 'bg-green-500 text-white' : 'bg-black text-white hover:bg-slate-900 shadow-slate-200'}`}
+                    >
+                      {hasFollowed ? (
+                        <>
+                          <span>{t.redirect.tiktokFollowed}</span>
+                          <div className="bg-white rounded-full p-1"><ArrowRight className="w-4 h-4 text-green-500" /></div>
+                        </>
+                      ) : (
+                        <span>{t.redirect.followTikTok}</span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleStart}
+                      disabled={!hasFollowed}
+                      className={`w-full py-6 rounded-2xl font-black text-xl uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${hasFollowed
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xl hover:shadow-purple-200 cursor-pointer'
+                        : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+                    >
+                      {t.redirect.processRedirect}
+                      <ArrowRight className={`w-6 h-6 transition-transform ${hasFollowed ? 'group-hover:translate-x-1' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <AdBanner placementId="download_step_2" className="mb-8" />
                   <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Clock className="w-12 h-12 text-purple-600" />
                   </div>
@@ -132,7 +196,7 @@ export default function Redirect() {
                     <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.prepareLinkDesc}</p>
                   </div>
                   <button
-                    onClick={handleStart}
+                    onClick={handlePrepare}
                     className="group w-full max-w-md mx-auto bg-purple-600 hover:bg-purple-700 text-white py-6 rounded-2xl font-black text-xl uppercase tracking-widest transition-all shadow-xl hover:shadow-purple-200 flex items-center justify-center gap-3"
                   >
                     {t.redirect.processRedirect}
@@ -141,9 +205,9 @@ export default function Redirect() {
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="download_step_2" className="mb-8" />
+                  <AdBanner placementId="download_step_3" className="mb-8" />
                   <div className="relative w-40 h-40 mx-auto">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
@@ -166,9 +230,9 @@ export default function Redirect() {
                 </div>
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="download_step_3" className="mb-8" />
+                  <AdBanner placementId="download_step_4" className="mb-8" />
                   <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="w-12 h-12 text-blue-600" />
                   </div>
@@ -193,9 +257,22 @@ export default function Redirect() {
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="download_step_4" className="mb-8" />
+                  <AdBanner placementId="download_step_5" className="mb-8" />
+                  <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">{t.redirect.step5Title}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.step5Desc}</p>
+                  </div>
+                </div>
+              )}
+
+              {step === 6 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <AdBanner placementId="download_step_6" className="mb-8" />
                   <div className="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-xl">
                     <ExternalLink className="w-16 h-16 text-green-600" />
                   </div>

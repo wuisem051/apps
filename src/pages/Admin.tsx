@@ -43,7 +43,7 @@ export default function Admin() {
   const { logs, clearLogs } = useAnalytics();
 
   const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics' | 'tools'>('content');
-  const [statsPeriod, setStatsPeriod] = useState<'daily' | 'monthly'>('daily');
+  const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   // UI state
   const [showGameForm, setShowGameForm] = useState(false);
@@ -307,6 +307,45 @@ export default function Admin() {
         ...stats
       }))
       .slice(-6); // Last 6 months
+  };
+
+  const getWeeklyStats = () => {
+    const weeks: Record<string, { visits: number; downloads: number }> = {};
+    const today = new Date();
+
+    // Generate keys for last 8 weeks
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (i * 7));
+      // Get the Monday of that week
+      const monday = new Date(d);
+      const day = monday.getDay();
+      const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+      monday.setDate(diff);
+      const key = monday.toISOString().split('T')[0]; // Use Monday's date as key
+      if (!weeks[key]) weeks[key] = { visits: 0, downloads: 0 };
+    }
+
+    logs.forEach(l => {
+      const d = new Date(l.timestamp);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(d);
+      monday.setDate(diff);
+      const key = monday.toISOString().split('T')[0];
+
+      if (weeks[key]) {
+        if (l.type === 'visit') weeks[key].visits++;
+        if (l.type === 'download') weeks[key].downloads++;
+      }
+    });
+
+    return Object.entries(weeks)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, stats]) => ({
+        label: `Week of ${label}`,
+        ...stats
+      }));
   };
 
   const getTopContent = (type: 'view' | 'download' = 'view') => {
@@ -708,6 +747,12 @@ export default function Admin() {
                         Daily
                       </button>
                       <button
+                        onClick={() => setStatsPeriod('weekly')}
+                        className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'weekly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Weekly
+                      </button>
+                      <button
                         onClick={() => setStatsPeriod('monthly')}
                         className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'monthly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                       >
@@ -717,7 +762,7 @@ export default function Admin() {
                   </div>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={statsPeriod === 'daily' ? getDailyStats() : getMonthlyStats()}>
+                      <AreaChart data={statsPeriod === 'daily' ? getDailyStats() : statsPeriod === 'weekly' ? getWeeklyStats() : getMonthlyStats()}>
                         <XAxis dataKey="label" hide />
                         <defs>
                           <linearGradient id="cV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>

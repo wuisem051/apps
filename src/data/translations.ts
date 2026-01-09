@@ -44,7 +44,13 @@ export const translations = {
             destinationLoadedDesc: 'Link verified successfully. You can now proceed safely.',
             continueLink: 'Continue to Link',
             sponsoredResources: 'Sponsored Resources',
-            safeRedirectNotice: 'You are being redirected safely by InyectYT Secure Link Tunnel. All external connections are checked for security.'
+            safeRedirectNotice: 'You are being redirected safely by InyectYT Secure Link Tunnel. All external connections are checked for security.',
+            tiktokStepTitle: 'Follow on TikTok',
+            tiktokStepDesc: 'To continue, you must follow our TikTok account. It helps us keep this service free!',
+            followTikTok: 'Follow @inyectoryt',
+            tiktokFollowed: 'Verified! You can continue.',
+            step5Title: 'Server Handshake',
+            step5Desc: 'Establishing secure connection to the download server...'
         }
     },
     es: {
@@ -92,7 +98,13 @@ export const translations = {
             destinationLoadedDesc: 'Enlace verificado exitosamente. Ahora puedes proceder con seguridad.',
             continueLink: 'Ir al Enlace',
             sponsoredResources: 'Recursos Patrocinados',
-            safeRedirectNotice: 'Estás siendo redirigido de forma segura por InyectYT Secure Link Tunnel. Todas las conexiones externas son verificadas por seguridad.'
+            safeRedirectNotice: 'Estás siendo redirigido de forma segura por InyectYT Secure Link Tunnel. Todas las conexiones externas son verificadas por seguridad.',
+            tiktokStepTitle: 'Síguenos en TikTok',
+            tiktokStepDesc: 'Para continuar, debes seguir nuestra cuenta de TikTok. ¡Nos ayuda a mantener este servicio gratis!',
+            followTikTok: 'Seguir a @inyectoryt',
+            tiktokFollowed: '¡Verificado! Puedes continuar.',
+            step5Title: 'Conexión con Servidor',
+            step5Desc: 'Estableciendo conexión segura con el servidor de descarga...'
         }
     }
 };
