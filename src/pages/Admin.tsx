@@ -38,7 +38,7 @@ export default function Admin() {
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({ ...ADMIN_CREDENTIALS });
 
-  const { siteName, footerText, downloadTimer, adPlacements, homeHero, footerPages, updateSettings, updateAdPlacement } = useSiteSettings();
+  const { siteName, footerText, downloadTimer, adPlacements, homeHero, footerPages, updateSettings, updateAdPlacement, language } = useSiteSettings();
   const { games, apps, addGame, updateGame, deleteGame, addApp, updateApp, deleteApp } = useContent();
   const { logs, clearLogs } = useAnalytics();
 
@@ -58,7 +58,12 @@ export default function Admin() {
   const [isScraping, setIsScraping] = useState(false);
 
   // Settings state
-  const [settingsForm, setSettingsForm] = useState({ siteName: '', footerText: '', downloadTimer: 15 });
+  const [settingsForm, setSettingsForm] = useState<{
+    siteName: string;
+    footerText: string;
+    downloadTimer: number;
+    language?: 'en' | 'es';
+  }>({ siteName: '', footerText: '', downloadTimer: 15, language: 'en' });
   const [heroForm, setHeroForm] = useState({ title: '', subtitle: '' });
   const [pagesForm, setPagesForm] = useState<any[]>([]);
   const [showSettings, setShowSettings] = useState(false);
@@ -68,10 +73,10 @@ export default function Admin() {
   const [placementForm, setPlacementForm] = useState<Partial<any>>({});
 
   useEffect(() => {
-    setSettingsForm({ siteName, footerText, downloadTimer });
+    setSettingsForm({ siteName, footerText, downloadTimer, language: language || 'en' });
     setHeroForm({ title: homeHero.title, subtitle: homeHero.subtitle });
     setPagesForm([...footerPages]);
-  }, [siteName, footerText, downloadTimer, homeHero, footerPages, showSettings]);
+  }, [siteName, footerText, downloadTimer, homeHero, footerPages, showSettings, language]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -456,8 +461,23 @@ export default function Admin() {
                   <p className="text-3xl font-black text-blue-500">{logs.filter(l => l.type === 'visit').length}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Downloads</h3>
-                  <p className="text-3xl font-black text-green-500">{logs.filter(l => l.type === 'download').length}</p>
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Total Downloads</h3>
+                  <p className="text-3xl font-black text-green-500">
+                    {(() => {
+                      const parseDownloads = (str: string) => {
+                        if (!str) return 0;
+                        const lower = str.toLowerCase();
+                        if (lower.includes('m')) return parseFloat(lower) * 1000000;
+                        if (lower.includes('k')) return parseFloat(lower) * 1000;
+                        return parseInt(str.replace(/[^0-9]/g, '')) || 0;
+                      };
+                      const contentDownloads = [...games, ...apps].reduce((acc, item) => acc + parseDownloads(item.downloads), 0);
+                      const sessionDownloads = logs.filter(l => l.type === 'download').length;
+                      // Avoid double counting if logs are already updating content items (which simplified logic assumes no for now)
+                      // For now, let's just show the content aggregate as it's "All Time" implied by the fields
+                      return (contentDownloads + sessionDownloads).toLocaleString();
+                    })()}
+                  </p>
                 </div>
               </div>
 
@@ -620,6 +640,17 @@ export default function Admin() {
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Download Timer (sec)</label>
                       <input type="number" value={settingsForm.downloadTimer} onChange={e => setSettingsForm({ ...settingsForm, downloadTimer: parseInt(e.target.value) })} className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold" />
                     </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Site Language</label>
+                      <select
+                        value={settingsForm.language || 'en'}
+                        onChange={e => setSettingsForm({ ...settingsForm, language: e.target.value as 'en' | 'es' })}
+                        className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold"
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                      </select>
+                    </div>
                     <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-slate-200">Save General Settings</button>
                   </form>
 
@@ -757,6 +788,43 @@ export default function Admin() {
                 </div>
                 <button onClick={() => { if (confirm("Are you sure?")) clearLogs(); }} className="text-xs font-black uppercase text-red-400 hover:text-red-600 transition-colors">Wipe Data</button>
               </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+                <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Detailed Redirection Logs (Mega & Mediafire)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                        <th className="pb-3 pl-4">Time</th>
+                        <th className="pb-3">Target Link</th>
+                        <th className="pb-3">Status</th>
+                        <th className="pb-3">Country</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {logs.filter(l => l.type === 'redirect').slice(0, 50).map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-3 pl-4 font-mono text-xs text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</td>
+                          <td className="py-3 max-w-[200px] truncate text-slate-600 font-medium" title={log.itemTitle}>{log.itemTitle || 'Unknown'}</td>
+                          <td className="py-3">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide
+                              ${log.itemId === 'step_4' ? 'bg-green-100 text-green-700' :
+                                log.itemId === 'step_1' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}`}>
+                              {log.itemId?.replace('_', ' ') || 'Started'}
+                            </span>
+                          </td>
+                          <td className="py-3 text-slate-600 font-bold text-xs">{log.geo.country}</td>
+                        </tr>
+                      ))}
+                      {logs.filter(l => l.type === 'redirect').length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-8 text-center text-slate-400 font-medium">No redirection activity recorded yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 
@@ -768,7 +836,7 @@ export default function Admin() {
                 </h3>
                 <p className="text-slate-600 mb-6 font-medium">
                   Paste this script into your Blogger or external website's <code>&lt;head&gt;</code> or before the <code>&lt;/body&gt;</code> tag.
-                  It will automatically detect all <strong>Mediafire</strong> links and redirect them through your site's countdown page.
+                  It will automatically detect all <strong>Mediafire</strong> and <strong>Mega.nz</strong> links and redirect them through your site's countdown page.
                 </p>
 
                 <div className="bg-slate-900 rounded-2xl p-6 relative group border border-slate-800 shadow-2xl">
@@ -778,7 +846,7 @@ export default function Admin() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
       var siteUrl = "${window.location.origin}";
-      var links = document.querySelectorAll('a[href*="mediafire.com"]');
+      var links = document.querySelectorAll('a[href*="mediafire.com"], a[href*="mega.nz"]');
       links.forEach(function(link) {
         var originalUrl = link.href;
         if (!originalUrl.includes(siteUrl)) {
@@ -797,7 +865,7 @@ export default function Admin() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
       var siteUrl = "${window.location.origin}";
-      var links = document.querySelectorAll('a[href*="mediafire.com"]');
+      var links = document.querySelectorAll('a[href*="mediafire.com"], a[href*="mega.nz"]');
       links.forEach(function(link) {
         var originalUrl = link.href;
         if (!originalUrl.includes(siteUrl)) {

@@ -5,11 +5,15 @@ import Footer from '../components/Footer';
 import AdBanner from '../components/AdBanner';
 import { ExternalLink, Clock, ArrowRight, AlertCircle } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteContext';
+import { useAnalytics } from '../context/AnalyticsContext';
+import { translations } from '../data/translations';
 
 export default function Redirect() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { downloadTimer: siteTimer } = useSiteSettings();
+  const { downloadTimer: siteTimer, language } = useSiteSettings();
+  const { trackEvent } = useAnalytics();
+  const t = translations[language] || translations['en'];
 
   const queryParams = new URLSearchParams(location.search);
   const targetUrl = queryParams.get('url');
@@ -17,6 +21,12 @@ export default function Redirect() {
   const [step, setStep] = useState(1);
   const [countdown, setCountdown] = useState(siteTimer || 15);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  useEffect(() => {
+    if (targetUrl) {
+      trackEvent('redirect', { itemId: `step_${step}`, itemTitle: targetUrl });
+    }
+  }, [step, targetUrl, trackEvent]);
 
   useEffect(() => {
     if (!targetUrl) {
@@ -58,8 +68,8 @@ export default function Redirect() {
           <div className="max-w-md mx-auto px-4 text-center">
             <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-slate-800 mb-2">Invalid Link</h1>
-              <p className="text-slate-600 mb-6">The redirect link is missing or invalid. Returning to home...</p>
+              <h1 className="text-2xl font-bold text-slate-800 mb-2">{t.redirect.invalidLink}</h1>
+              <p className="text-slate-600 mb-6">{t.redirect.invalidLinkDesc}</p>
             </div>
           </div>
         </main>
@@ -74,8 +84,8 @@ export default function Redirect() {
 
       <main className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">External Link Redirect</h1>
-          <p className="text-slate-500 font-medium">You are being redirected to an external site</p>
+          <h1 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">{t.redirect.title}</h1>
+          <p className="text-slate-500 font-medium">{t.redirect.subtitle}</p>
         </div>
 
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl overflow-hidden mb-8">
@@ -86,9 +96,9 @@ export default function Redirect() {
               </div>
               <div>
                 <div className="inline-flex px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-black text-white uppercase tracking-widest mb-2 border border-white/10">
-                  Step {step} of 4
+                  {t.redirect.step} {step} {t.redirect.of} 4
                 </div>
-                <h1 className="text-3xl font-black text-white uppercase tracking-tight">External Resource</h1>
+                <h1 className="text-3xl font-black text-white uppercase tracking-tight">{t.redirect.externalResource}</h1>
               </div>
             </div>
             <div className="hidden md:flex gap-2">
@@ -118,14 +128,14 @@ export default function Redirect() {
                     <Clock className="w-12 h-12 text-purple-600" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-2">Prepare Your Link</h2>
-                    <p className="text-slate-500 font-medium max-w-sm mx-auto">Click the button below to start the secure redirection process.</p>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2">{t.redirect.prepareLink}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.prepareLinkDesc}</p>
                   </div>
                   <button
                     onClick={handleStart}
                     className="group w-full max-w-md mx-auto bg-purple-600 hover:bg-purple-700 text-white py-6 rounded-2xl font-black text-xl uppercase tracking-widest transition-all shadow-xl hover:shadow-purple-200 flex items-center justify-center gap-3"
                   >
-                    Process Redirect
+                    {t.redirect.processRedirect}
                     <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
@@ -146,12 +156,12 @@ export default function Redirect() {
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-5xl font-black text-slate-800 tracking-tighter">{countdown}</span>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verifying</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.redirect.verifying}</span>
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Security Check...</h2>
-                    <p className="text-slate-500 font-medium max-w-sm mx-auto">We are generating a secure tunnel for your destination link.</p>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">{t.redirect.securityCheck}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.securityCheckDesc}</p>
                   </div>
                 </div>
               )}
@@ -163,8 +173,8 @@ export default function Redirect() {
                     <AlertCircle className="w-12 h-12 text-blue-600" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Human Verification</h2>
-                    <p className="text-slate-500 font-medium max-w-sm mx-auto">Please confirm that you want to proceed to the external destination.</p>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">{t.redirect.humanVerification}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.humanVerificationDesc}</p>
                   </div>
                   <button
                     onClick={handleVerify}
@@ -174,10 +184,10 @@ export default function Redirect() {
                     {isVerifying ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Verifying...
+                        {t.redirect.verifyingAction}
                       </div>
                     ) : (
-                      "Verify & Continue"
+                      t.redirect.verifyContinue
                     )}
                   </button>
                 </div>
@@ -191,23 +201,23 @@ export default function Redirect() {
                   </div>
                   <div className="space-y-2">
                     <div className="inline-block px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">
-                      System Ready
+                      {t.redirect.systemReady}
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Destination Loaded!</h2>
-                    <p className="text-slate-500 font-medium max-w-sm mx-auto">Link verified successfully. You can now proceed safely.</p>
+                    <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">{t.redirect.destinationLoaded}</h2>
+                    <p className="text-slate-500 font-medium max-w-sm mx-auto">{t.redirect.destinationLoadedDesc}</p>
                   </div>
                   <button
                     onClick={handleRedirect}
                     className="group w-full max-w-md mx-auto bg-gradient-to-r from-slate-900 to-slate-800 hover:from-purple-700 hover:to-purple-600 text-white py-8 rounded-[2rem] font-black text-2xl uppercase tracking-widest transition-all shadow-2xl hover:shadow-purple-200 flex items-center justify-center gap-4"
                   >
-                    <span>Continue to Link</span>
+                    <span>{t.redirect.continueLink}</span>
                     <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
                   </button>
                 </div>
               )}
 
               <div className="mt-12 pt-8 border-t border-slate-100">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Sponsored Resources</h3>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">{t.redirect.sponsoredResources}</h3>
                 <AdBanner placementId="game_detail_banner_1" />
               </div>
             </div>
@@ -216,8 +226,7 @@ export default function Redirect() {
 
         <div className="text-center">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest max-w-sm mx-auto leading-relaxed">
-            You are being redirected safely by InyectYT Secure Link Tunnel.
-            All external connections are checked for security.
+            {t.redirect.safeRedirectNotice}
           </p>
         </div>
 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query, orderBy, limit, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 
-export type EventType = 'visit' | 'view' | 'download';
+export type EventType = 'visit' | 'view' | 'download' | 'redirect';
 
 export interface AnalyticsLog {
     id: string;
@@ -93,7 +93,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
     };
 
-    const trackEvent = async (type: EventType, metadata?: { itemId?: string; itemTitle?: string }) => {
+    const trackEvent = React.useCallback(async (type: EventType, metadata?: { itemId?: string; itemTitle?: string }) => {
         // Use default geo if not yet fetched to avoid missing events
         const geoPayload = sessionGeo || { ip: 'Pending...', country: 'Pending...', city: 'Pending...', region: 'Pending...' };
 
@@ -112,7 +112,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         } catch (err) {
             console.error('Failed to track event', err);
         }
-    };
+    }, [sessionGeo]);
 
     const clearLogs = async () => {
         if (!confirm("This will clear all logs from the database. Continue?")) return;

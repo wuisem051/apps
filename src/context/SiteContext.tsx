@@ -28,6 +28,7 @@ type SiteSettings = {
         subtitle: string;
     };
     footerPages: FooterPage[];
+    language: 'en' | 'es';
 };
 
 type SiteContextType = SiteSettings & {
@@ -64,7 +65,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
         { slug: 'terms', title: 'Terms of Service', content: '# Terms of Service\n\nBy using our site, you agree to these terms...' },
         { slug: 'dmca', title: 'DMCA', content: '# DMCA Policy\n\nWe respect intellectual property rights...' },
         { slug: 'contact', title: 'Contact Us', content: '# Contact Us\n\nYou can reach us at contact@apkvault.com' }
-    ]
+    ],
+    language: 'en'
 };
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
