@@ -121,10 +121,10 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
             (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data() as SiteSettings;
-                    // Ensure new default placements (like native_ad_1) are merged in if missing from DB
-                    // This creates a union of "Defaults defined in code" and "Values saved in DB"
+                    // Ensure new default placements logic remains
                     const mergedPlacements = { ...DEFAULT_PLACEMENTS, ...(data.adPlacements || {}) };
-                    setSettings({ ...data, adPlacements: mergedPlacements });
+                    // Merge complete settings: Defaults + Fetched Data + Merged Placements
+                    setSettings({ ...DEFAULT_SETTINGS, ...data, adPlacements: mergedPlacements });
                 }
                 setIsLoading(false);
             },
