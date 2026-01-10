@@ -19,6 +19,7 @@ import { SiteProvider } from './src/context/SiteContext';
 import { ContentProvider } from './src/context/ContentContext';
 import { AnalyticsProvider, useAnalytics } from './src/context/AnalyticsContext';
 import { useLocation } from 'react-router-dom';
+import CodeInjector from './src/components/CodeInjector';
 
 const PageViewTracker = () => {
   const { trackEvent } = useAnalytics();
@@ -36,6 +37,7 @@ const App: React.FC = () => {
     <AnalyticsProvider>
       <ContentProvider>
         <SiteProvider>
+          <CodeInjector />
           <Theme appearance="inherit" radius="large" scaling="100%">
             <Router>
               <PageViewTracker />
