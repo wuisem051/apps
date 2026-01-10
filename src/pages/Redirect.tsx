@@ -301,7 +301,10 @@ export default function Redirect() {
 
               <div className="mt-12 pt-8 border-t border-slate-100">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">{t.redirect.sponsoredResources}</h3>
-                <AdBanner placementId="game_detail_banner_1" />
+                <div className="space-y-6">
+                  <AdBanner placementId="native_banner_2" className="my-0" />
+                  <AdBanner placementId="game_detail_banner_1" />
+                </div>
               </div>
             </div>
           </div>
