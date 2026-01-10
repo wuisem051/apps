@@ -281,6 +281,7 @@ export default function GameDetail() {
             </div>
 
             <div className="space-y-8">
+              <AdBanner placementId="native_ad_1" fallbackWidth={300} fallbackHeight={250} className="shadow-sm rounded-2xl overflow-hidden" />
               <AdBanner placementId="game_detail_sidebar_1" fallbackWidth={300} fallbackHeight={250} className="shadow-sm rounded-2xl overflow-hidden" />
 
               <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">

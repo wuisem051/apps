@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, Clock, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '../context/SiteContext';
 import { useAnalytics } from '../context/AnalyticsContext';
@@ -14,50 +14,57 @@ interface DownloadFlowProps {
 export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplete }: DownloadFlowProps) {
   const { downloadTimer: siteTimer } = useSiteSettings();
   const { trackEvent } = useAnalytics();
+
   const [step, setStep] = useState(1);
   const [countdown, setCountdown] = useState(siteTimer || 15);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [hasFollowed, setHasFollowed] = useState(false);
 
   useEffect(() => {
-    // Reset countdown if timer setting changes, but only if we haven't started (optional refinement)
-    // For now, simple init is enough, but let's sync it for step 2
-    if (step === 2 && countdown > 0) {
+    // Step 3 is now the Countdown Step
+    if (step === 3 && countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (step === 2 && countdown === 0) {
-      setStep(3);
+    } else if (step === 3 && countdown === 0) {
+      setStep(4);
     }
   }, [step, countdown]);
 
+  const handleTikTokFollow = () => {
+    window.open('https://www.tiktok.com/@inyectoryt', '_blank');
+    setHasFollowed(true);
+  };
+
+  const handleStartFlow = () => {
+    if (hasFollowed) {
+      setStep(2);
+    }
+  };
+
   const handleStartDownload = () => {
-    setCountdown(siteTimer || 15); // Ensure we start with fresh timer
-    setStep(2);
+    setCountdown(siteTimer || 15);
+    setStep(3);
   };
 
   const handleVerification = () => {
     setIsVerifying(true);
     setTimeout(() => {
       setIsVerifying(false);
-      setStep(4);
+      setStep(5);
     }, 2000);
   };
 
-  const handleFinalDownload = () => {
-    window.open(downloadUrl, '_blank');
-    onDownloadComplete();
-  };
-
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg border border-slate-300 p-6">
+    <div className="max-w-3xl mx-auto bg-white rounded-lg border border-slate-300 p-6 shadow-sm">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Download {gameTitle}</h2>
         <div className="flex justify-center space-x-2 mb-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i <= step
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${i <= step
                 ? 'bg-purple-600 text-white'
-                : 'bg-slate-200 text-slate-500'
+                : 'bg-slate-100 text-slate-400'
                 }`}
             >
               {i}
@@ -67,17 +74,58 @@ export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplet
       </div>
 
       {step === 1 && (
-        <div className="text-center space-y-6">
-          <AdBanner placementId="download_step_1" className="mb-4" />
+        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+            <AdBanner placementId="download_step_1" className="my-0" />
+            <AdBanner placementId="native_ad_1" className="my-0" />
+          </div>
+
+          <div className="space-y-4 max-w-md mx-auto">
+            <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto text-white font-bold text-2xl shadow-lg">
+              TT
+            </div>
+            <h3 className="text-xl font-semibold text-slate-800">Support Us to Download</h3>
+            <p className="text-slate-600">
+              Please follow us on TikTok to unlock the download link. This helps us keep providing free content!
+            </p>
+
+            <button
+              onClick={handleTikTokFollow}
+              className={`w-full py-4 rounded-xl font-bold text-lg uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${hasFollowed ? 'bg-green-500 text-white' : 'bg-black text-white hover:bg-slate-800'}`}
+            >
+              {hasFollowed ? 'Followed ✓' : 'Follow on TikTok'}
+            </button>
+
+            <button
+              onClick={handleStartFlow}
+              disabled={!hasFollowed}
+              className={`w-full py-4 rounded-xl font-bold text-lg uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${hasFollowed
+                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg cursor-pointer'
+                : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+            >
+              {hasFollowed ? 'Continue to Download' : 'Follow to Unlock'}
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+            <AdBanner placementId="download_step_2" className="my-0" />
+            <AdBanner placementId="native_ad_1" className="my-0" />
+          </div>
+
           <div className="space-y-4">
             <AlertCircle className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Prepare Download</h3>
             <p className="text-slate-600">
-              Click the button below to start the download process. Please wait for the verification steps to complete.
+              Click the button below to start the server connection.
             </p>
             <button
               onClick={handleStartDownload}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-md"
             >
               Start Download Process
             </button>
@@ -85,19 +133,23 @@ export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplet
         </div>
       )}
 
-      {step === 2 && (
-        <div className="text-center space-y-6">
-          <AdBanner placementId="download_step_2" className="mb-4" />
+      {step === 3 && (
+        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+            <AdBanner placementId="download_step_3" className="my-0" />
+            <AdBanner placementId="native_ad_1" className="my-0" />
+          </div>
+
           <div className="space-y-4">
             <Clock className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Please Wait</h3>
             <p className="text-slate-600">
-              Preparing your download... Please wait {countdown} seconds.
+              Generating secure link... {countdown} seconds remaining.
             </p>
-            <div className="text-3xl font-bold text-purple-600">{countdown}</div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="text-4xl font-black text-purple-600 font-mono">{countdown}</div>
+            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
+                className="bg-purple-600 h-full rounded-full transition-all duration-1000 ease-linear"
                 style={{ width: `${((siteTimer - countdown) / siteTimer) * 100}%` }}
               />
             </div>
@@ -105,19 +157,23 @@ export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplet
         </div>
       )}
 
-      {step === 3 && (
-        <div className="text-center space-y-6">
-          <AdBanner placementId="download_step_3" className="mb-4" />
+      {step === 4 && (
+        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+            <AdBanner placementId="download_step_4" className="my-0" />
+            <AdBanner placementId="native_ad_1" className="my-0" />
+          </div>
+
           <div className="space-y-4">
             <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
-            <h3 className="text-xl font-semibold text-slate-800">Verification Required</h3>
+            <h3 className="text-xl font-semibold text-slate-800">Final Verification</h3>
             <p className="text-slate-600">
-              Click the verification button to proceed with the download.
+              Verify you are human to proceed.
             </p>
             <button
               onClick={handleVerification}
               disabled={isVerifying}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+              className="bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-md w-full max-w-xs mx-auto"
             >
               {isVerifying ? 'Verifying...' : 'Verify & Continue'}
             </button>
@@ -125,14 +181,18 @@ export default function DownloadFlow({ gameTitle, downloadUrl, onDownloadComplet
         </div>
       )}
 
-      {step === 4 && (
-        <div className="text-center space-y-6">
-          <AdBanner placementId="download_step_4" className="mb-4" />
+      {step === 5 && (
+        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+            <AdBanner placementId="download_step_5" className="my-0" />
+            <AdBanner placementId="native_ad_1" className="my-0" />
+          </div>
+
           <div className="space-y-4">
             <Download className="w-16 h-16 text-purple-600 mx-auto" />
             <h3 className="text-xl font-semibold text-slate-800">Download Ready!</h3>
             <p className="text-slate-600">
-              Your download is ready. Click the button below to start downloading {gameTitle}.
+              Your file is ready. Click below to download.
             </p>
             <a
               href={downloadUrl}

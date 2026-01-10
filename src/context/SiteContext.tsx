@@ -51,6 +51,24 @@ const DEFAULT_PLACEMENTS: Record<string, AdPlacement> = {
     'download_step_4': { id: 'download_step_4', name: 'Download Step 4', type: 'zone', value: '', width: 300, height: 250, active: true },
     'download_step_5': { id: 'download_step_5', name: 'Download Step 5', type: 'zone', value: '', width: 300, height: 250, active: true },
     'download_step_6': { id: 'download_step_6', name: 'Download Step 6 (Final)', type: 'zone', value: '', width: 300, height: 250, active: true },
+    'native_ad_1': {
+        id: 'native_ad_1',
+        name: 'Native/Script Ad (Downloads & Details)',
+        type: 'script',
+        value: '<script async="async" data-cfasync="false" src="https://downyattainprojects.com/d3e9e872caab09be3b22c7c5d6a8c65f/invoke.js"></script><div id="container-d3e9e872caab09be3b22c7c5d6a8c65f"></div>',
+        width: 300,
+        height: 250,
+        active: true
+    },
+    'native_banner_2': {
+        id: 'native_banner_2',
+        name: 'Native Banner 728x90',
+        type: 'script',
+        value: '<script type="text/javascript">atOptions = { "key" : "dde01996abb5c99ad56ff1640bd460dd", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} };</script><script type="text/javascript" src="https://downyattainprojects.com/dde01996abb5c99ad56ff1640bd460dd/invoke.js"></script>',
+        width: 728,
+        height: 90,
+        active: true
+    },
 };
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -98,7 +116,11 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const unsub = onSnapshot(globalRef,
             (snapshot) => {
                 if (snapshot.exists()) {
-                    setSettings(snapshot.data() as SiteSettings);
+                    const data = snapshot.data() as SiteSettings;
+                    // Ensure new default placements (like native_ad_1) are merged in if missing from DB
+                    // This creates a union of "Defaults defined in code" and "Values saved in DB"
+                    const mergedPlacements = { ...DEFAULT_PLACEMENTS, ...(data.adPlacements || {}) };
+                    setSettings({ ...data, adPlacements: mergedPlacements });
                 }
                 setIsLoading(false);
             },

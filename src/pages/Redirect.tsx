@@ -232,7 +232,10 @@ export default function Redirect() {
 
               {step === 4 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="download_step_4" className="mb-8" />
+                  <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-8">
+                    <AdBanner placementId="download_step_4" className="my-0" />
+                    <AdBanner placementId="native_ad_1" className="my-0" />
+                  </div>
                   <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="w-12 h-12 text-blue-600" />
                   </div>
@@ -272,7 +275,10 @@ export default function Redirect() {
 
               {step === 6 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <AdBanner placementId="download_step_6" className="mb-8" />
+                  <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-8">
+                    <AdBanner placementId="download_step_6" className="my-0" />
+                    <AdBanner placementId="native_ad_1" className="my-0" />
+                  </div>
                   <div className="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-xl">
                     <ExternalLink className="w-16 h-16 text-green-600" />
                   </div>

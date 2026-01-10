@@ -651,6 +651,10 @@ export default function Admin() {
                           <span>Value</span>
                           <span className="text-slate-700 truncate max-w-[120px]">{p.value || 'None'}</span>
                         </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 mt-1 border-t border-slate-300/50 pt-1">
+                          <span>Size</span>
+                          <span className="text-purple-600">{p.width} x {p.height}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
