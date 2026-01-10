@@ -695,31 +695,30 @@ export default function Admin() {
                         <option value="en">English</option>
                         <option value="es">Español</option>
                       </select>
-                      </select>
                     </div>
-                    
+
                     <div className="pt-4 border-t border-slate-100 space-y-4">
-                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                           <Globe className="w-4 h-4 text-slate-400" /> Custom Injections
-                        </h4>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Head Code (Analytics, etc)</label>
-                          <textarea 
-                            value={settingsForm.headCode || ''} 
-                            onChange={e => setSettingsForm({ ...settingsForm, headCode: e.target.value })} 
-                            className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-mono text-xs h-32"
-                            placeholder="<script>...</script>"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Footer Code (Chat widgets, etc)</label>
-                          <textarea 
-                            value={settingsForm.footerCode || ''} 
-                            onChange={e => setSettingsForm({ ...settingsForm, footerCode: e.target.value })} 
-                            className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-mono text-xs h-32"
-                            placeholder="<script>...</script>"
-                          />
-                        </div>
+                      <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-slate-400" /> Custom Injections
+                      </h4>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Head Code (Analytics, etc)</label>
+                        <textarea
+                          value={settingsForm.headCode || ''}
+                          onChange={e => setSettingsForm({ ...settingsForm, headCode: e.target.value })}
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-mono text-xs h-32"
+                          placeholder="<script>...</script>"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Footer Code (Chat widgets, etc)</label>
+                        <textarea
+                          value={settingsForm.footerCode || ''}
+                          onChange={e => setSettingsForm({ ...settingsForm, footerCode: e.target.value })}
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition-all font-mono text-xs h-32"
+                          placeholder="<script>...</script>"
+                        />
+                      </div>
                     </div>
 
                     <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-slate-200">Save General Settings</button>
@@ -762,167 +761,167 @@ export default function Admin() {
                   </div>
                 </div>
               </div>
-    </div>
-  )
-}
-
-{
-  activeTab === 'analytics' && (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Traffic & Interaction</h3>
-            <div className="flex bg-slate-100 rounded-lg p-1">
-              <button
-                onClick={() => setStatsPeriod('daily')}
-                className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'daily' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                Daily
-              </button>
-              <button
-                onClick={() => setStatsPeriod('weekly')}
-                className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'weekly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                Weekly
-              </button>
-              <button
-                onClick={() => setStatsPeriod('monthly')}
-                className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'monthly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                Monthly
-              </button>
             </div>
-          </div>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={statsPeriod === 'daily' ? getDailyStats() : statsPeriod === 'weekly' ? getWeeklyStats() : getMonthlyStats()}>
-                <XAxis dataKey="label" hide />
-                <defs>
-                  <linearGradient id="cV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="cD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
-                </defs>
-                <Tooltip contentStyle={{ borderRadius: '12px' }} />
-                <Area type="monotone" dataKey="visits" stroke="#3b82f6" fillOpacity={1} fill="url(#cV)" />
-                <Area type="monotone" dataKey="downloads" stroke="#10b981" fillOpacity={1} fill="url(#cD)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative">
-          <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-4">Device OS Distribution</h3>
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={getDeviceData()} innerRadius={50} outerRadius={70} dataKey="value">
-                  {getDeviceData().map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'][i % 4]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {getDeviceData().map((d, i) => (
-              <div key={i} className="bg-white/5 p-2 rounded-lg border border-white/10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{d.name}</p>
-                <p className="text-lg font-black">{d.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+          )
+          }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Viewed Content</h3>
-          <div className="space-y-4">
-            {getTopContent('view').map((item, i) => (
-              <div key={i} className="flex justify-between items-center group cursor-pointer">
-                <span className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors truncate max-w-[80%]">{item.title}</span>
-                <span className="text-xs font-black text-slate-400">{item.count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Downloaded Content</h3>
-          <div className="space-y-4">
-            {getTopContent('download').map((item, i) => (
-              <div key={i} className="flex justify-between items-center group cursor-pointer">
-                <span className="text-sm font-bold text-slate-600 group-hover:text-green-600 transition-colors truncate max-w-[80%]">{item.title}</span>
-                <span className="text-xs font-black text-slate-400">{item.count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+          {
+            activeTab === 'analytics' && (
+              <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Traffic & Interaction</h3>
+                      <div className="flex bg-slate-100 rounded-lg p-1">
+                        <button
+                          onClick={() => setStatsPeriod('daily')}
+                          className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'daily' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          Daily
+                        </button>
+                        <button
+                          onClick={() => setStatsPeriod('weekly')}
+                          className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'weekly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          Weekly
+                        </button>
+                        <button
+                          onClick={() => setStatsPeriod('monthly')}
+                          className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${statsPeriod === 'monthly' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          Monthly
+                        </button>
+                      </div>
+                    </div>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={statsPeriod === 'daily' ? getDailyStats() : statsPeriod === 'weekly' ? getWeeklyStats() : getMonthlyStats()}>
+                          <XAxis dataKey="label" hide />
+                          <defs>
+                            <linearGradient id="cV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
+                            <linearGradient id="cD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
+                          </defs>
+                          <Tooltip contentStyle={{ borderRadius: '12px' }} />
+                          <Area type="monotone" dataKey="visits" stroke="#3b82f6" fillOpacity={1} fill="url(#cV)" />
+                          <Area type="monotone" dataKey="downloads" stroke="#10b981" fillOpacity={1} fill="url(#cD)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative">
+                    <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-4">Device OS Distribution</h3>
+                    <div className="h-[180px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={getDeviceData()} innerRadius={50} outerRadius={70} dataKey="value">
+                            {getDeviceData().map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'][i % 4]} />)}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {getDeviceData().map((d, i) => (
+                        <div key={i} className="bg-white/5 p-2 rounded-lg border border-white/10">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{d.name}</p>
+                          <p className="text-lg font-black">{d.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 flex justify-between items-center bg-gradient-to-r from-white to-slate-50">
-        <div className="flex items-center gap-4">
-          <Globe className="w-8 h-8 text-blue-500 opacity-20" />
-          <div>
-            <h4 className="font-black text-slate-800 uppercase tracking-tight text-sm">Geographic Origin</h4>
-            <p className="text-xs text-slate-400 font-bold">Top Countries: {getGeoData().map(g => g.name).slice(0, 5).join(', ') || 'Waiting for data...'}</p>
-          </div>
-        </div>
-        <button onClick={() => { if (confirm("Are you sure?")) clearLogs(); }} className="text-xs font-black uppercase text-red-400 hover:text-red-600 transition-colors">Wipe Data</button>
-      </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                    <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Viewed Content</h3>
+                    <div className="space-y-4">
+                      {getTopContent('view').map((item, i) => (
+                        <div key={i} className="flex justify-between items-center group cursor-pointer">
+                          <span className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors truncate max-w-[80%]">{item.title}</span>
+                          <span className="text-xs font-black text-slate-400">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                    <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Top Downloaded Content</h3>
+                    <div className="space-y-4">
+                      {getTopContent('download').map((item, i) => (
+                        <div key={i} className="flex justify-between items-center group cursor-pointer">
+                          <span className="text-sm font-bold text-slate-600 group-hover:text-green-600 transition-colors truncate max-w-[80%]">{item.title}</span>
+                          <span className="text-xs font-black text-slate-400">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-        <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Detailed Redirection Logs (Mega & Mediafire)</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-[10px] uppercase font-black tracking-widest">
-                <th className="pb-3 pl-4">Time</th>
-                <th className="pb-3">Target Link</th>
-                <th className="pb-3">Status</th>
-                <th className="pb-3">Country</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {logs.filter(l => l.type === 'redirect').slice(0, 50).map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-3 pl-4 font-mono text-xs text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</td>
-                  <td className="py-3 max-w-[200px] truncate text-slate-600 font-medium" title={log.itemTitle}>{log.itemTitle || 'Unknown'}</td>
-                  <td className="py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 flex justify-between items-center bg-gradient-to-r from-white to-slate-50">
+                  <div className="flex items-center gap-4">
+                    <Globe className="w-8 h-8 text-blue-500 opacity-20" />
+                    <div>
+                      <h4 className="font-black text-slate-800 uppercase tracking-tight text-sm">Geographic Origin</h4>
+                      <p className="text-xs text-slate-400 font-bold">Top Countries: {getGeoData().map(g => g.name).slice(0, 5).join(', ') || 'Waiting for data...'}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => { if (confirm("Are you sure?")) clearLogs(); }} className="text-xs font-black uppercase text-red-400 hover:text-red-600 transition-colors">Wipe Data</button>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-widest mb-6">Detailed Redirection Logs (Mega & Mediafire)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                          <th className="pb-3 pl-4">Time</th>
+                          <th className="pb-3">Target Link</th>
+                          <th className="pb-3">Status</th>
+                          <th className="pb-3">Country</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {logs.filter(l => l.type === 'redirect').slice(0, 50).map((log) => (
+                          <tr key={log.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 pl-4 font-mono text-xs text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</td>
+                            <td className="py-3 max-w-[200px] truncate text-slate-600 font-medium" title={log.itemTitle}>{log.itemTitle || 'Unknown'}</td>
+                            <td className="py-3">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide
                               ${log.itemId === 'step_4' ? 'bg-green-100 text-green-700' :
-                        log.itemId === 'step_1' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}`}>
-                      {log.itemId?.replace('_', ' ') || 'Started'}
-                    </span>
-                  </td>
-                  <td className="py-3 text-slate-600 font-bold text-xs">{log.geo.country}</td>
-                </tr>
-              ))}
-              {logs.filter(l => l.type === 'redirect').length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-400 font-medium">No redirection activity recorded yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
+                                  log.itemId === 'step_1' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}`}>
+                                {log.itemId?.replace('_', ' ') || 'Started'}
+                              </span>
+                            </td>
+                            <td className="py-3 text-slate-600 font-bold text-xs">{log.geo.country}</td>
+                          </tr>
+                        ))}
+                        {logs.filter(l => l.type === 'redirect').length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-slate-400 font-medium">No redirection activity recorded yet.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )
+          }
 
-{
-  activeTab === 'tools' && (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-        <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-          <Globe className="w-6 h-6 text-green-600" /> Redirect Script Generator
-        </h3>
-        <p className="text-slate-600 mb-6 font-medium">
-          Paste this script into your Blogger or external website's <code>&lt;head&gt;</code> or before the <code>&lt;/body&gt;</code> tag.
-          It will automatically detect all <strong>Mediafire</strong> and <strong>Mega.nz</strong> links and redirect them through your site's countdown page.
-        </p>
+          {
+            activeTab === 'tools' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                  <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                    <Globe className="w-6 h-6 text-green-600" /> Redirect Script Generator
+                  </h3>
+                  <p className="text-slate-600 mb-6 font-medium">
+                    Paste this script into your Blogger or external website's <code>&lt;head&gt;</code> or before the <code>&lt;/body&gt;</code> tag.
+                    It will automatically detect all <strong>Mediafire</strong> and <strong>Mega.nz</strong> links and redirect them through your site's countdown page.
+                  </p>
 
-        <div className="bg-slate-900 rounded-2xl p-6 relative group border border-slate-800 shadow-2xl">
-          <pre className="text-blue-400 font-mono text-sm overflow-x-auto whitespace-pre-wrap">
-            {`<script>
+                  <div className="bg-slate-900 rounded-2xl p-6 relative group border border-slate-800 shadow-2xl">
+                    <pre className="text-blue-400 font-mono text-sm overflow-x-auto whitespace-pre-wrap">
+                      {`<script>
   (function() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
@@ -938,10 +937,10 @@ export default function Admin() {
     });
   })();
 </script>`}
-          </pre>
-          <button
-            onClick={() => {
-              const script = `<script>
+                    </pre>
+                    <button
+                      onClick={() => {
+                        const script = `<script>
   (function() {
     document.addEventListener("DOMContentLoaded", function() {
       // Automatic redirection script for Mediafire links
@@ -957,261 +956,261 @@ export default function Admin() {
     });
   })();
 </script>`;
-              navigator.clipboard.writeText(script);
-              alert("Script copied to clipboard!");
-            }}
-            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all border border-white/10"
-          >
-            Copy Script
-          </button>
-        </div>
+                        navigator.clipboard.writeText(script);
+                        alert("Script copied to clipboard!");
+                      }}
+                      className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all border border-white/10"
+                    >
+                      Copy Script
+                    </button>
+                  </div>
 
-        <div className="mt-8 p-6 bg-blue-50 border border-blue-100 rounded-2xl">
-          <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2 uppercase text-xs tracking-widest">
-            <Check className="w-4 h-4" /> How it works:
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-2 list-disc list-inside font-medium">
-            <li>Finds all links containing "mediafire.com".</li>
-            <li>Rewrites them to point to your <code>/redirect</code> page.</li>
-            <li>Encodes the original URL for safety.</li>
-            <li>Ensures links open in a new tab.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
-}
+                  <div className="mt-8 p-6 bg-blue-50 border border-blue-100 rounded-2xl">
+                    <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2 uppercase text-xs tracking-widest">
+                      <Check className="w-4 h-4" /> How it works:
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-2 list-disc list-inside font-medium">
+                      <li>Finds all links containing "mediafire.com".</li>
+                      <li>Rewrites them to point to your <code>/redirect</code> page.</li>
+                      <li>Encodes the original URL for safety.</li>
+                      <li>Ensures links open in a new tab.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )
+          }
         </div >
       </main >
 
-  { showGameForm && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
-        <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
-        <form onSubmit={saveGame} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
-              <input value={gameForm.title || ''} onChange={e => {
-                const newTitle = e.target.value;
-                setGameForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
-              }} placeholder="Title" className="w-full border p-2 rounded" required />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
-              <input value={gameForm.slug || ''} onChange={e => setGameForm({ ...gameForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
-            </div>
-          </div>
-          <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
-          <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
-          <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <div className="space-y-1 col-span-full">
-              <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
-              <input value={gameForm.seoTitle || ''} onChange={e => setGameForm({ ...gameForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
-              <input value={gameForm.metaDescription || ''} onChange={e => setGameForm({ ...gameForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
-              <input value={gameForm.focusKeywords || ''} onChange={e => setGameForm({ ...gameForm, focusKeywords: e.target.value })} placeholder="game, mod, apk" className="w-full border p-2 rounded text-xs" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
-            <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
-            <input value={gameForm.sourceUrl || ''} onChange={e => setGameForm({ ...gameForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
-          </div>
-          <div className="flex gap-2">
-            <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
-            <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )}
-
-{
-  showAppForm && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
-        <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
-        <form onSubmit={saveApp} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
-              <input value={appForm.title || ''} onChange={e => {
-                const newTitle = e.target.value;
-                setAppForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
-              }} placeholder="Title" className="w-full border p-2 rounded" required />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
-              <input value={appForm.slug || ''} onChange={e => setAppForm({ ...appForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
-            </div>
-          </div>
-          <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
-          <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
-          <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <div className="space-y-1 col-span-full">
-              <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
-              <input value={appForm.seoTitle || ''} onChange={e => setAppForm({ ...appForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
-              <input value={appForm.metaDescription || ''} onChange={e => setAppForm({ ...appForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
-              <input value={appForm.focusKeywords || ''} onChange={e => setAppForm({ ...appForm, focusKeywords: e.target.value })} placeholder="app, utility, tool" className="w-full border p-2 rounded text-xs" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
-            <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
-            <input value={appForm.sourceUrl || ''} onChange={e => setAppForm({ ...appForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
-          </div>
-          <div className="flex gap-2">
-            <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
-            <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-{
-  editingPlacementId && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white p-8 rounded-2xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Configure Ad Placement</h2>
-          <button onClick={() => setEditingPlacementId(null)} className="text-slate-400 hover:text-slate-600">
-            <PlusCircle className="w-6 h-6 rotate-45" />
-          </button>
-        </div>
-
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          updateAdPlacement(editingPlacementId, placementForm);
-          setEditingPlacementId(null);
-          alert('Ad placement updated successfully!');
-        }} className="space-y-6">
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
-            <p className="text-xs font-bold text-slate-500 uppercase mb-1">Editing Placement</p>
-            <p className="text-lg font-black text-purple-600">{placementForm.name}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ad Type</label>
-              <select
-                value={placementForm.type}
-                onChange={e => setPlacementForm({ ...placementForm, type: e.target.value as any })}
-                className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-              >
-                <option value="zone">Adsterra Zone</option>
-                <option value="script">Custom Script / HTML</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
-              <div className="flex items-center gap-3 p-3 bg-white border-2 border-slate-100 rounded-xl">
-                <input
-                  type="checkbox"
-                  checked={placementForm.active}
-                  onChange={e => setPlacementForm({ ...placementForm, active: e.target.checked })}
-                  className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
-                />
-                <span className="font-bold text-slate-700 text-sm">{placementForm.active ? 'Active' : 'Inactive'}</span>
+      {showGameForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
+            <form onSubmit={saveGame} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                  <input value={gameForm.title || ''} onChange={e => {
+                    const newTitle = e.target.value;
+                    setGameForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                  }} placeholder="Title" className="w-full border p-2 rounded" required />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                  <input value={gameForm.slug || ''} onChange={e => setGameForm({ ...gameForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
+                </div>
               </div>
+              <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+              <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+              <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1 col-span-full">
+                  <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                  <input value={gameForm.seoTitle || ''} onChange={e => setGameForm({ ...gameForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                  <input value={gameForm.metaDescription || ''} onChange={e => setGameForm({ ...gameForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                  <input value={gameForm.focusKeywords || ''} onChange={e => setGameForm({ ...gameForm, focusKeywords: e.target.value })} placeholder="game, mod, apk" className="w-full border p-2 rounded text-xs" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                <input value={gameForm.sourceUrl || ''} onChange={e => setGameForm({ ...gameForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
+                <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {
+        showAppForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+              <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
+              <form onSubmit={saveApp} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                    <input value={appForm.title || ''} onChange={e => {
+                      const newTitle = e.target.value;
+                      setAppForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                    }} placeholder="Title" className="w-full border p-2 rounded" required />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                    <input value={appForm.slug || ''} onChange={e => setAppForm({ ...appForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
+                  </div>
+                </div>
+                <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+                <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+                <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div className="space-y-1 col-span-full">
+                    <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                    <input value={appForm.seoTitle || ''} onChange={e => setAppForm({ ...appForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                    <input value={appForm.metaDescription || ''} onChange={e => setAppForm({ ...appForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                    <input value={appForm.focusKeywords || ''} onChange={e => setAppForm({ ...appForm, focusKeywords: e.target.value })} placeholder="app, utility, tool" className="w-full border p-2 rounded text-xs" />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                  <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                  <input value={appForm.sourceUrl || ''} onChange={e => setAppForm({ ...appForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
+                </div>
+                <div className="flex gap-2">
+                  <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
+                  <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+                </div>
+              </form>
             </div>
           </div>
+        )
+      }
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {placementForm.type === 'zone' ? 'Zone ID / Key' : 'Script Code / HTML'}
-            </label>
-            {placementForm.type === 'zone' ? (
-              <input
-                value={placementForm.value || ''}
-                onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
-                placeholder="e.g. 1234567890abcdef"
-                className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm"
-              />
-            ) : (
-              <textarea
-                value={placementForm.value || ''}
-                onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
-                placeholder="Paste your ad script here..."
-                className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm h-32"
-              />
-            )}
-          </div>
+      {
+        editingPlacementId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="bg-white p-8 rounded-2xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Configure Ad Placement</h2>
+                <button onClick={() => setEditingPlacementId(null)} className="text-slate-400 hover:text-slate-600">
+                  <PlusCircle className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Width (px)</label>
-              <input
-                type="number"
-                value={placementForm.width || ''}
-                onChange={e => setPlacementForm({ ...placementForm, width: parseInt(e.target.value) })}
-                className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-              />
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                updateAdPlacement(editingPlacementId, placementForm);
+                setEditingPlacementId(null);
+                alert('Ad placement updated successfully!');
+              }} className="space-y-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Editing Placement</p>
+                  <p className="text-lg font-black text-purple-600">{placementForm.name}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ad Type</label>
+                    <select
+                      value={placementForm.type}
+                      onChange={e => setPlacementForm({ ...placementForm, type: e.target.value as any })}
+                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                    >
+                      <option value="zone">Adsterra Zone</option>
+                      <option value="script">Custom Script / HTML</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                    <div className="flex items-center gap-3 p-3 bg-white border-2 border-slate-100 rounded-xl">
+                      <input
+                        type="checkbox"
+                        checked={placementForm.active}
+                        onChange={e => setPlacementForm({ ...placementForm, active: e.target.checked })}
+                        className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="font-bold text-slate-700 text-sm">{placementForm.active ? 'Active' : 'Inactive'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {placementForm.type === 'zone' ? 'Zone ID / Key' : 'Script Code / HTML'}
+                  </label>
+                  {placementForm.type === 'zone' ? (
+                    <input
+                      value={placementForm.value || ''}
+                      onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                      placeholder="e.g. 1234567890abcdef"
+                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm"
+                    />
+                  ) : (
+                    <textarea
+                      value={placementForm.value || ''}
+                      onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                      placeholder="Paste your ad script here..."
+                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm h-32"
+                    />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Width (px)</label>
+                    <input
+                      type="number"
+                      value={placementForm.width || ''}
+                      onChange={e => setPlacementForm({ ...placementForm, width: parseInt(e.target.value) })}
+                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height (px)</label>
+                    <input
+                      type="number"
+                      value={placementForm.height || ''}
+                      onChange={e => setPlacementForm({ ...placementForm, height: parseInt(e.target.value) })}
+                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4" /> Save Configuration
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingPlacementId(null)}
+                    className="px-6 border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black uppercase text-xs tracking-widest rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height (px)</label>
-              <input
-                type="number"
-                value={placementForm.height || ''}
-                onChange={e => setPlacementForm({ ...placementForm, height: parseInt(e.target.value) })}
-                className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-              />
-            </div>
           </div>
+        )
+      }
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
-            >
-              <Save className="w-4 h-4" /> Save Configuration
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingPlacementId(null)}
-              className="px-6 border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black uppercase text-xs tracking-widest rounded-xl transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-<Footer />
+      <Footer />
     </div >
   );
 }
