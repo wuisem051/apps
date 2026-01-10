@@ -108,6 +108,9 @@ export default function GameDetail() {
                     <div className="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
                       {game.category}
                     </div>
+                    <div className="mb-4">
+                      <AdBanner placementId="native_banner_2" className="my-0" />
+                    </div>
                     <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{game.title}</h1>
                     <p className="text-lg text-slate-600 mb-6 leading-relaxed">{game.description}</p>
 
