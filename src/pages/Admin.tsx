@@ -38,7 +38,7 @@ export default function Admin() {
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({ ...ADMIN_CREDENTIALS });
 
-  const { siteName, footerText, downloadTimer, adPlacements, homeHero, footerPages, updateSettings, updateAdPlacement, language } = useSiteSettings();
+  const { siteName, footerText, downloadTimer, adPlacements, homeHero, footerPages, updateSettings, updateAdPlacement, language, headCode, footerCode } = useSiteSettings();
   const { games, apps, addGame, updateGame, deleteGame, addApp, updateApp, deleteApp } = useContent();
   const { logs, clearLogs } = useAnalytics();
 
@@ -75,10 +75,10 @@ export default function Admin() {
   const [placementForm, setPlacementForm] = useState<Partial<any>>({});
 
   useEffect(() => {
-    setSettingsForm({ siteName, footerText, downloadTimer, language: language || 'en', headCode: useSiteSettings().headCode, footerCode: useSiteSettings().footerCode });
+    setSettingsForm({ siteName, footerText, downloadTimer, language: language || 'en', headCode, footerCode });
     setHeroForm({ title: homeHero.title, subtitle: homeHero.subtitle });
     setPagesForm([...footerPages]);
-  }, [siteName, footerText, downloadTimer, homeHero, footerPages, showSettings, language]);
+  }, [siteName, footerText, downloadTimer, homeHero, footerPages, showSettings, language, headCode, footerCode]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
