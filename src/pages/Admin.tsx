@@ -1166,239 +1166,237 @@ export default function Admin() {
               </div>
             )
           }
-        </div >
-      </main >
 
-      {showGameForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
-            <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
-            <form onSubmit={saveGame} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
-                  <input value={gameForm.title || ''} onChange={e => {
-                    const newTitle = e.target.value;
-                    setGameForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
-                  }} placeholder="Title" className="w-full border p-2 rounded" required />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
-                  <input value={gameForm.slug || ''} onChange={e => setGameForm({ ...gameForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
-                </div>
-              </div>
-              <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
-              <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
-              <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div className="space-y-1 col-span-full">
-                  <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
-                  <input value={gameForm.seoTitle || ''} onChange={e => setGameForm({ ...gameForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
-                  <input value={gameForm.metaDescription || ''} onChange={e => setGameForm({ ...gameForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
-                  <input value={gameForm.focusKeywords || ''} onChange={e => setGameForm({ ...gameForm, focusKeywords: e.target.value })} placeholder="game, mod, apk" className="w-full border p-2 rounded text-xs" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
-                <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
-                <input value={gameForm.sourceUrl || ''} onChange={e => setGameForm({ ...gameForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
-                <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {
-        showAppForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
-              <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
-              <form onSubmit={saveApp} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
-                    <input value={appForm.title || ''} onChange={e => {
-                      const newTitle = e.target.value;
-                      setAppForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
-                    }} placeholder="Title" className="w-full border p-2 rounded" required />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
-                    <input value={appForm.slug || ''} onChange={e => setAppForm({ ...appForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
-                  </div>
-                </div>
-                <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
-                <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
-                <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <div className="space-y-1 col-span-full">
-                    <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
-                    <input value={appForm.seoTitle || ''} onChange={e => setAppForm({ ...appForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
-                    <input value={appForm.metaDescription || ''} onChange={e => setAppForm({ ...appForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
-                    <input value={appForm.focusKeywords || ''} onChange={e => setAppForm({ ...appForm, focusKeywords: e.target.value })} placeholder="app, utility, tool" className="w-full border p-2 rounded text-xs" />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
-                  <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
-                  <input value={appForm.sourceUrl || ''} onChange={e => setAppForm({ ...appForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
-                </div>
-                <div className="flex gap-2">
-                  <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
-                  <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )
-      }
-
-      {
-        editingPlacementId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white p-8 rounded-2xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Configure Ad Placement</h2>
-                <button onClick={() => setEditingPlacementId(null)} className="text-slate-400 hover:text-slate-600">
-                  <PlusCircle className="w-6 h-6 rotate-45" />
-                </button>
-              </div>
-
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                updateAdPlacement(editingPlacementId, placementForm);
-                setEditingPlacementId(null);
-                alert('Ad placement updated successfully!');
-              }} className="space-y-6">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
-                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Editing Placement</p>
-                  <p className="text-lg font-black text-purple-600">{placementForm.name}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ad Type</label>
-                    <select
-                      value={placementForm.type}
-                      onChange={e => setPlacementForm({ ...placementForm, type: e.target.value as any })}
-                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-                    >
-                      <option value="zone">Adsterra Zone</option>
-                      <option value="script">Custom Script / HTML</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
-                    <div className="flex items-center gap-3 p-3 bg-white border-2 border-slate-100 rounded-xl">
-                      <input
-                        type="checkbox"
-                        checked={placementForm.active}
-                        onChange={e => setPlacementForm({ ...placementForm, active: e.target.checked })}
-                        className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
-                      />
-                      <span className="font-bold text-slate-700 text-sm">{placementForm.active ? 'Active' : 'Inactive'}</span>
+          {showGameForm && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+                <h2 className="text-xl font-bold mb-4">{editingGameId ? 'Edit Game' : 'Add Game'}</h2>
+                <form onSubmit={saveGame} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                      <input value={gameForm.title || ''} onChange={e => {
+                        const newTitle = e.target.value;
+                        setGameForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                      }} placeholder="Title" className="w-full border p-2 rounded" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                      <input value={gameForm.slug || ''} onChange={e => setGameForm({ ...gameForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
                     </div>
                   </div>
-                </div>
+                  <textarea value={gameForm.description || ''} onChange={e => setGameForm({ ...gameForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+                  <input value={gameForm.image || ''} onChange={e => setGameForm({ ...gameForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+                  <input value={gameForm.category || ''} onChange={e => setGameForm({ ...gameForm, category: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    {placementForm.type === 'zone' ? 'Zone ID / Key' : 'Script Code / HTML'}
-                  </label>
-                  {placementForm.type === 'zone' ? (
-                    <input
-                      value={placementForm.value || ''}
-                      onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
-                      placeholder="e.g. 1234567890abcdef"
-                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm"
-                    />
-                  ) : (
-                    <textarea
-                      value={placementForm.value || ''}
-                      onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
-                      placeholder="Paste your ad script here..."
-                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm h-32"
-                    />
-                  )}
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div className="space-y-1 col-span-full">
+                      <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                      <input value={gameForm.seoTitle || ''} onChange={e => setGameForm({ ...gameForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                      <input value={gameForm.metaDescription || ''} onChange={e => setGameForm({ ...gameForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                      <input value={gameForm.focusKeywords || ''} onChange={e => setGameForm({ ...gameForm, focusKeywords: e.target.value })} placeholder="game, mod, apk" className="w-full border p-2 rounded text-xs" />
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Width (px)</label>
-                    <input
-                      type="number"
-                      value={placementForm.width || ''}
-                      onChange={e => setPlacementForm({ ...placementForm, width: parseInt(e.target.value) })}
-                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-                    />
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                    <input value={gameForm.downloadUrl || ''} onChange={e => setGameForm({ ...gameForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height (px)</label>
-                    <input
-                      type="number"
-                      value={placementForm.height || ''}
-                      onChange={e => setPlacementForm({ ...placementForm, height: parseInt(e.target.value) })}
-                      className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
-                    />
+                    <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                    <input value={gameForm.sourceUrl || ''} onChange={e => setGameForm({ ...gameForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
                   </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Save className="w-4 h-4" /> Save Configuration
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingPlacementId(null)}
-                    className="px-6 border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black uppercase text-xs tracking-widest rounded-xl transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+                  <div className="flex gap-2">
+                    <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
+                    <button type="button" onClick={() => setShowGameForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-        )
-      }
+          )}
 
-    </div>
+          {
+            showAppForm && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
+                  <h2 className="text-xl font-bold mb-4">{editingAppId ? 'Edit App' : 'Add App'}</h2>
+                  <form onSubmit={saveApp} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Title</label>
+                        <input value={appForm.title || ''} onChange={e => {
+                          const newTitle = e.target.value;
+                          setAppForm(prev => ({ ...prev, title: newTitle, slug: prev.slug || slugify(newTitle) }));
+                        }} placeholder="Title" className="w-full border p-2 rounded" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Slug (URL)</label>
+                        <input value={appForm.slug || ''} onChange={e => setAppForm({ ...appForm, slug: slugify(e.target.value) })} placeholder="URL character-name" className="w-full border p-2 rounded" required />
+                      </div>
+                    </div>
+                    <textarea value={appForm.description || ''} onChange={e => setAppForm({ ...appForm, description: e.target.value })} placeholder="Description" className="w-full border p-2 rounded" />
+                    <input value={appForm.image || ''} onChange={e => setAppForm({ ...appForm, image: e.target.value })} placeholder="Image URL" className="w-full border p-2 rounded" />
+                    <input value={appForm.appCategory || ''} onChange={e => setAppForm({ ...appForm, appCategory: e.target.value })} placeholder="Category" className="w-full border p-2 rounded" />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      <div className="space-y-1 col-span-full">
+                        <h4 className="text-xs font-black text-slate-800 uppercase mb-2">SEO Optimization</h4>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">SEO Title</label>
+                        <input value={appForm.seoTitle || ''} onChange={e => setAppForm({ ...appForm, seoTitle: e.target.value })} placeholder="Meta title" className="w-full border p-2 rounded text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Meta Description</label>
+                        <input value={appForm.metaDescription || ''} onChange={e => setAppForm({ ...appForm, metaDescription: e.target.value })} placeholder="Search snippet" className="w-full border p-2 rounded text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Keywords</label>
+                        <input value={appForm.focusKeywords || ''} onChange={e => setAppForm({ ...appForm, focusKeywords: e.target.value })} placeholder="app, utility, tool" className="w-full border p-2 rounded text-xs" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Direct Download URL (Mediafire, etc.)</label>
+                      <input value={appForm.downloadUrl || ''} onChange={e => setAppForm({ ...appForm, downloadUrl: e.target.value })} placeholder="Paste direct link here..." className="w-full border p-2 rounded" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase">Source/Web URL (Reference)</label>
+                      <input value={appForm.sourceUrl || ''} onChange={e => setAppForm({ ...appForm, sourceUrl: e.target.value })} placeholder="Reference website URL" className="w-full border p-2 rounded" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="submit" className="bg-pink-500 text-white px-4 py-2 rounded">Save</button>
+                      <button type="button" onClick={() => setShowAppForm(false)} className="border px-4 py-2 rounded">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            editingPlacementId && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white p-8 rounded-2xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Configure Ad Placement</h2>
+                    <button onClick={() => setEditingPlacementId(null)} className="text-slate-400 hover:text-slate-600">
+                      <PlusCircle className="w-6 h-6 rotate-45" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    updateAdPlacement(editingPlacementId, placementForm);
+                    setEditingPlacementId(null);
+                    alert('Ad placement updated successfully!');
+                  }} className="space-y-6">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                      <p className="text-xs font-bold text-slate-500 uppercase mb-1">Editing Placement</p>
+                      <p className="text-lg font-black text-purple-600">{placementForm.name}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ad Type</label>
+                        <select
+                          value={placementForm.type}
+                          onChange={e => setPlacementForm({ ...placementForm, type: e.target.value as any })}
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                        >
+                          <option value="zone">Adsterra Zone</option>
+                          <option value="script">Custom Script / HTML</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                        <div className="flex items-center gap-3 p-3 bg-white border-2 border-slate-100 rounded-xl">
+                          <input
+                            type="checkbox"
+                            checked={placementForm.active}
+                            onChange={e => setPlacementForm({ ...placementForm, active: e.target.checked })}
+                            className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="font-bold text-slate-700 text-sm">{placementForm.active ? 'Active' : 'Inactive'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {placementForm.type === 'zone' ? 'Zone ID / Key' : 'Script Code / HTML'}
+                      </label>
+                      {placementForm.type === 'zone' ? (
+                        <input
+                          value={placementForm.value || ''}
+                          onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                          placeholder="e.g. 1234567890abcdef"
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm"
+                        />
+                      ) : (
+                        <textarea
+                          value={placementForm.value || ''}
+                          onChange={e => setPlacementForm({ ...placementForm, value: e.target.value })}
+                          placeholder="Paste your ad script here..."
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-mono text-sm h-32"
+                        />
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Width (px)</label>
+                        <input
+                          type="number"
+                          value={placementForm.width || ''}
+                          onChange={e => setPlacementForm({ ...placementForm, width: parseInt(e.target.value) })}
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height (px)</label>
+                        <input
+                          type="number"
+                          value={placementForm.height || ''}
+                          onChange={e => setPlacementForm({ ...placementForm, height: parseInt(e.target.value) })}
+                          className="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-purple-500 outline-none transition-all font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Save className="w-4 h-4" /> Save Configuration
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingPlacementId(null)}
+                        className="px-6 border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black uppercase text-xs tracking-widest rounded-xl transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )
+          }
+
+        </div>
       </main >
-    <Footer />
+      <Footer />
     </div >
   );
 }
