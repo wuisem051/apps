@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AdBanner from '../components/AdBanner';
-import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe, Settings as SettingsIcon, Save, TrendingUp } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, PlusCircle, Trash2, Edit, Check, Download, Globe, Settings as SettingsIcon, Save, TrendingUp, FileText } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteContext';
 import { useContent } from '../context/ContentContext';
 import { useAnalytics } from '../context/AnalyticsContext';
@@ -42,8 +42,9 @@ export default function Admin() {
   const { games, apps, addGame, updateGame, deleteGame, addApp, updateApp, deleteApp } = useContent();
   const { logs, clearLogs } = useAnalytics();
 
-  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics' | 'tools' | 'users'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics' | 'tools' | 'users' | 'pastes'>('content');
   const [users, setUsers] = useState<any[]>([]);
+  const [pastes, setPastes] = useState<any[]>([]);
   const [userLoading, setUserLoading] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
@@ -388,7 +389,40 @@ export default function Admin() {
     if (activeTab === 'users') {
       fetchUsers();
     }
+    if (activeTab === 'pastes') {
+      fetchPastes();
+    }
   }, [activeTab]);
+
+  const fetchPastes = async () => {
+    const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
+    const { db } = await import('../firebase');
+    try {
+      const q = query(collection(db, 'pastes'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const fetchedPastes: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedPastes.push({ id: doc.id, ...doc.data() });
+      });
+      setPastes(fetchedPastes);
+    } catch (error) {
+      console.error("Error fetching pastes:", error);
+    }
+  };
+
+  const deletePaste = async (id: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este Paste?")) {
+      const { deleteDoc, doc } = await import('firebase/firestore');
+      const { db } = await import('../firebase');
+      try {
+        await deleteDoc(doc(db, 'pastes', id));
+        setPastes(pastes.filter(p => p.id !== id));
+        alert("Paste eliminado correctamente.");
+      } catch (error) {
+        alert("Error al eliminar el paste.");
+      }
+    }
+  };
 
   const fetchUsers = async () => {
     const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
@@ -519,6 +553,12 @@ export default function Admin() {
               className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'users' ? 'border-b-4 border-blue-600 text-blue-600' : 'text-slate-400'}`}
             >
               User Management
+            </button>
+            <button
+              onClick={() => setActiveTab('pastes')}
+              className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'pastes' ? 'border-b-4 border-orange-600 text-orange-600' : 'text-slate-400'}`}
+            >
+              Pastes Manager
             </button>
             <button
               onClick={() => setActiveTab('tools')}
@@ -1003,6 +1043,49 @@ export default function Admin() {
               </div>
             )
           }
+
+          {activeTab === 'pastes' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm animate-in fade-in duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                  <FileText className="w-6 h-6 text-orange-600" /> PASTE INYECTOR Management
+                </h3>
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{pastes.length} Total Pastes</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-xs font-black text-slate-400 uppercase tracking-widest">
+                      <th className="p-4">Title</th>
+                      <th className="p-4">User ID</th>
+                      <th className="p-4">Created</th>
+                      <th className="p-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {pastes.length === 0 ? (
+                      <tr><td colSpan={4} className="p-8 text-center text-slate-400">No pastes found.</td></tr>
+                    ) : (
+                      pastes.map((p: any) => (
+                        <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-4 font-bold text-slate-800">{p.title}</td>
+                          <td className="p-4 text-xs text-slate-500 font-mono">{p.userId}</td>
+                          <td className="p-4 text-xs text-slate-400">
+                            {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex justify-center gap-2">
+                              <button onClick={() => deletePaste(p.id)} className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {
             activeTab === 'tools' && (
