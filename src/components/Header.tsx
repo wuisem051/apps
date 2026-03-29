@@ -20,7 +20,8 @@ export default function Header() {
     { name: t.header.home, href: '/' },
     { name: t.header.games, href: '/games' },
     { name: t.header.apps, href: '/apps' },
-    { name: t.header.categories, href: '/categories' }
+    { name: t.header.categories, href: '/categories' },
+    { name: t.header.playpaste, href: '/playpaste' }
   ];
 
   useEffect(() => {

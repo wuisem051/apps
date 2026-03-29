@@ -13,56 +13,54 @@ import Admin from './src/pages/Admin';
 import GameDetail from './src/pages/GameDetail';
 import StaticPage from './src/pages/StaticPage';
 import Redirect from './src/pages/Redirect';
+import PlayPaste from './src/pages/PlayPaste';
+import PasteView from './src/pages/PasteView';
+import Login from './src/pages/Login';
+import Register from './src/pages/Register';
 import NotFound from './src/pages/NotFound';
 
+import { AuthProvider } from './src/context/AuthContext';
 import { SiteProvider } from './src/context/SiteContext';
 import { ContentProvider } from './src/context/ContentContext';
-import { AnalyticsProvider, useAnalytics } from './src/context/AnalyticsContext';
-import { useLocation } from 'react-router-dom';
+import { AnalyticsProvider } from './src/context/AnalyticsContext';
 import CodeInjector from './src/components/CodeInjector';
-
-const PageViewTracker = () => {
-  const { trackEvent } = useAnalytics();
-  const location = useLocation();
-
-  React.useEffect(() => {
-    trackEvent('visit');
-  }, [location.pathname]);
-
-  return null;
-};
 
 const App: React.FC = () => {
   return (
     <AnalyticsProvider>
       <ContentProvider>
         <SiteProvider>
-          <CodeInjector />
-          <Theme appearance="inherit" radius="large" scaling="100%">
-            <Router>
-              <PageViewTracker />
-              <main className="min-h-screen font-inter">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/games" element={<Games />} />
-                  <Route path="/apps" element={<Apps />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/dev" element={<Admin />} />
-                  <Route path="/game/:slug" element={<GameDetail />} />
-                  <Route path="/p/:slug" element={<StaticPage />} />
-                  <Route path="/redirect" element={<Redirect />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <ToastContainer
-                  position="top-right"
-                  autoClose={3000}
-                  newestOnTop
-                  closeOnClick
-                  pauseOnHover
-                />
-              </main>
-            </Router>
-          </Theme>
+          <AuthProvider>
+            <CodeInjector />
+            <Theme appearance="inherit" radius="large" scaling="100%">
+              <Router>
+                <main className="min-h-screen font-inter">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/games" element={<Games />} />
+                    <Route path="/apps" element={<Apps />} />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/dev" element={<Admin />} />
+                    <Route path="/game/:slug" element={<GameDetail />} />
+                    <Route path="/p/:slug" element={<StaticPage />} />
+                    <Route path="/redirect" element={<Redirect />} />
+                    <Route path="/playpaste" element={<PlayPaste />} />
+                    <Route path="/v/:id" element={<PasteView />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    newestOnTop
+                    closeOnClick
+                    pauseOnHover
+                  />
+                </main>
+              </Router>
+            </Theme>
+          </AuthProvider>
         </SiteProvider>
       </ContentProvider>
     </AnalyticsProvider>

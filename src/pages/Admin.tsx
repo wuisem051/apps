@@ -42,7 +42,9 @@ export default function Admin() {
   const { games, apps, addGame, updateGame, deleteGame, addApp, updateApp, deleteApp } = useContent();
   const { logs, clearLogs } = useAnalytics();
 
-  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics' | 'tools'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'analytics' | 'tools' | 'users'>('content');
+  const [users, setUsers] = useState<any[]>([]);
+  const [userLoading, setUserLoading] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   // UI state
@@ -382,6 +384,45 @@ export default function Admin() {
   const { isLoading: contentLoading } = useContent();
   const { isLoading: settingsLoading } = useSiteSettings();
 
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+    }
+  }, [activeTab]);
+
+  const fetchUsers = async () => {
+    const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
+    const { db } = await import('../firebase');
+    setUserLoading(true);
+    try {
+      const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const fetchedUsers: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedUsers.push({ id: doc.id, ...doc.data() });
+      });
+      setUsers(fetchedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const deleteUser = async (id: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar a este usuario?")) {
+      const { deleteDoc, doc } = await import('firebase/firestore');
+      const { db } = await import('../firebase');
+      try {
+        await deleteDoc(doc(db, 'users', id));
+        setUsers(users.filter(u => u.id !== id));
+        alert("Usuario eliminado correctamente de la base de datos.");
+      } catch (error) {
+        alert("Error al eliminar usuario.");
+      }
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -472,6 +513,12 @@ export default function Admin() {
               className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'analytics' ? 'border-b-4 border-orange-600 text-orange-600' : 'text-slate-400'}`}
             >
               Real-time Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`pb-2 px-4 font-bold text-sm transition-all ${activeTab === 'users' ? 'border-b-4 border-blue-600 text-blue-600' : 'text-slate-400'}`}
+            >
+              User Management
             </button>
             <button
               onClick={() => setActiveTab('tools')}
@@ -608,8 +655,12 @@ export default function Admin() {
 
               <div className="mt-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                 <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                  <SettingsIcon className="w-5 h-5 text-slate-400" /> Ad Inventory
+                  <SettingsIcon className="w-5 h-5 text-slate-400" /> Monetization (Adsterra & Others)
                 </h3>
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6 text-sm">
+                  <p className="text-indigo-800 font-bold mb-1">Adsterra Integration</p>
+                  <p className="text-indigo-600 text-xs">To insert Adsterra ads, edit an active placement below and paste your Script Code or Zone ID into the "Value" field.</p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {adPlacements && Object.values(adPlacements).map((p: any) => (
                     <div key={p.id} className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -764,6 +815,52 @@ export default function Admin() {
             </div>
           )
           }
+
+          {activeTab === 'users' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm animate-in fade-in duration-300">
+              <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <User className="w-6 h-6 text-blue-600" /> User Management
+              </h3>
+              {userLoading ? (
+                <div className="py-12 flex justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div></div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-xs font-black text-slate-400 uppercase tracking-widest">
+                        <th className="p-4">Name</th>
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Joined</th>
+                        <th className="p-4">Role</th>
+                        <th className="p-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {users.length === 0 ? (
+                        <tr><td colSpan={5} className="p-8 text-center text-slate-400">No users found.</td></tr>
+                      ) : (
+                        users.map((u) => (
+                          <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-4 font-bold text-slate-800">{u.displayName}</td>
+                            <td className="p-4 text-slate-600">{u.email}</td>
+                            <td className="p-4 text-xs text-slate-400">
+                              {u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                            </td>
+                            <td className="p-4"><span className="text-[10px] bg-slate-100 px-2 py-1 rounded font-black uppercase text-slate-500">{u.role || 'User'}</span></td>
+                            <td className="p-4">
+                              <div className="flex justify-center gap-2">
+                                <button onClick={() => deleteUser(u.id)} className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {
             activeTab === 'analytics' && (

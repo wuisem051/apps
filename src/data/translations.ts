@@ -5,6 +5,7 @@ export const translations = {
             games: 'Games',
             apps: 'Apps',
             categories: 'Categories',
+            playpaste: 'Paste Inyector',
             searchPlaceholder: 'Search games & apps...',
             searchResults: 'Search Results'
         },
@@ -59,6 +60,7 @@ export const translations = {
             games: 'Juegos',
             apps: 'Apps',
             categories: 'Categorías',
+            playpaste: 'Paste Inyector',
             searchPlaceholder: 'Buscar juegos y apps...',
             searchResults: 'Resultados de búsqueda'
         },
