@@ -7,15 +7,38 @@ import { Lock, Mail, Github, Chrome, ArrowRight, Clipboard } from 'lucide-react'
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useAuth } from '../context/AuthContext';
+import { ADMIN_CREDENTIALS } from './Admin';
+
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { user, isLoading } = useAuth();
+
+    // Redirect if already logged in
+    React.useEffect(() => {
+        if (!isLoading && user) {
+            navigate('/playpaste');
+        }
+    }, [user, isLoading, navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        // Check for Admin Credentials
+        if (email === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+            localStorage.setItem('isAdmin', 'true');
+            // Trigger storage event for AuthContext to update
+            window.dispatchEvent(new Event('storage'));
+            toast.success("¡Bienvenido Administrador!");
+            navigate('/playpaste');
+            setLoading(false);
+            return;
+        }
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
             toast.success("¡Bienvenido de nuevo!");
@@ -59,11 +82,11 @@ export default function Login() {
                                     <div className="relative">
                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                         <input
-                                            type="email"
+                                            type="text"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
-                                            placeholder="tu@email.com"
+                                            placeholder="tu@email.com o 'admin'"
                                             className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#4864D1]/20 transition-all font-medium"
                                         />
                                     </div>

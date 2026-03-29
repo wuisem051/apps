@@ -3,8 +3,9 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDummyKey_ReplaceWithRealOne",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBl0NBbpuckwORQLQYP7A1KiMJbrOmoi7w",
   authDomain: "apps-10a12.firebaseapp.com",
+  databaseURL: "https://apps-10a12-default-rtdb.firebaseio.com",
   projectId: "apps-10a12",
   storageBucket: "apps-10a12.firebasestorage.app",
   messagingSenderId: "305108518674",

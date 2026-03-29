@@ -34,7 +34,7 @@ function slugify(text: string) {
 }
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isAdmin') === 'true');
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({ ...ADMIN_CREDENTIALS });
 
@@ -87,9 +87,15 @@ export default function Admin() {
     e.preventDefault();
     if (credentials.username === ADMIN_CREDENTIALS.username && credentials.password === ADMIN_CREDENTIALS.password) {
       setIsLoggedIn(true);
+      localStorage.setItem('isAdmin', 'true');
     } else {
       alert(`Invalid credentials. Demo credentials are shown below.\nUsername: ${ADMIN_CREDENTIALS.username}\nPassword: ${ADMIN_CREDENTIALS.password}`);
     }
+  };
+
+  const logoutAdmin = () => {
+    localStorage.removeItem('isAdmin');
+    setIsLoggedIn(false);
   };
 
   // Games handlers
