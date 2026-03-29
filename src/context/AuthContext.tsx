@@ -3,7 +3,7 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../firebase';
 
 interface AuthContextType {
-    user: User | { uid: string; displayName: string; email: string } | null;
+    user: User | { uid: string; displayName: string; email: string; photoURL: string | null } | null;
     isLoading: boolean;
     isAdmin: boolean;
 }
@@ -11,7 +11,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({ user: null, isLoading: true, isAdmin: false });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | { uid: string; displayName: string; email: string } | null>(null);
+    const [user, setUser] = useState<User | { uid: string; displayName: string; email: string; photoURL: string | null } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -23,8 +23,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser({
                     uid: 'admin-master',
                     displayName: 'Administrator (Master)',
-                    email: 'admin@web.com'
-                });
+                    email: 'admin@web.com',
+                    photoURL: null
+                } as any);
             }
         };
 

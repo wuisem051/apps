@@ -1396,7 +1396,9 @@ export default function Admin() {
         )
       }
 
-      <Footer />
+    </div>
+      </main >
+    <Footer />
     </div >
   );
 }
