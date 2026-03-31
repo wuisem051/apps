@@ -26,11 +26,13 @@ import {
     Save,
     Trash
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, Timestamp, getDoc, where } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { LogOut } from 'lucide-react';
 
 interface PasteTab {
     title: string;
@@ -68,6 +70,7 @@ export default function PlayPaste() {
     const [pastes, setPastes] = useState<Paste[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     // Form State
     const [title, setTitle] = useState('');
@@ -102,22 +105,45 @@ export default function PlayPaste() {
         if (!user) return;
         setLoading(true);
         try {
+            // First fetch by userId (this doesn't require index unless we use orderBy)
             const q = query(
                 collection(db, 'pastes'),
-                where('userId', '==', user.uid),
-                orderBy('createdAt', 'desc')
+                where('userId', '==', user.uid)
             );
             const querySnapshot = await getDocs(q);
             const fetchedPastes: Paste[] = [];
             querySnapshot.forEach((doc) => {
                 fetchedPastes.push({ id: doc.id, ...doc.data() } as Paste);
             });
+
+            // Sort locally (descending by createdAt)
+            fetchedPastes.sort((a, b) => {
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds * 1000 || 0);
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds * 1000 || 0);
+                return timeB - timeA;
+            });
+
             setPastes(fetchedPastes);
         } catch (error) {
             console.error("Error fetching pastes: ", error);
             toast.error("Error al cargar pastes");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            if (localStorage.getItem('isAdmin') === 'true') {
+                localStorage.removeItem('isAdmin');
+                window.location.reload();
+                return;
+            }
+            await signOut(auth);
+            toast.success("Sesión cerrada");
+            navigate('/login');
+        } catch (error) {
+            toast.error("Error al cerrar sesión");
         }
     };
 
@@ -218,12 +244,33 @@ export default function PlayPaste() {
                         <h1 className="text-2xl font-black italic tracking-tighter uppercase underline decoration-orange-500 underline-offset-4">PASTE INYECTOR</h1>
                     </div>
 
-                    <div className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-md transition-colors">
-                        <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center overflow-hidden">
-                            {user?.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon className="w-5 h-5 text-white" />}
+                    <div className="relative">
+                        <div
+                            onClick={() => setIsProfileOpen(!isProfileOpen)}
+                            className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-md transition-colors"
+                        >
+                            <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center overflow-hidden">
+                                {user?.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon className="w-5 h-5 text-white" />}
+                            </div>
+                            <span className="font-medium text-sm">{user?.displayName || user?.email?.split('@')[0] || 'Cargando...'}</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                         </div>
-                        <span className="font-medium text-sm">{user?.displayName || user?.email?.split('@')[0] || 'Cargando...'}</span>
-                        <ChevronDown className="w-4 h-4" />
+
+                        {isProfileOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-slate-200">
+                                <div className="px-4 py-2 border-b border-slate-100">
+                                    <p className="text-xs text-slate-500 uppercase font-black">Registrado como:</p>
+                                    <p className="text-sm font-bold text-slate-700 truncate">{user?.email}</p>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-bold uppercase tracking-tighter"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -375,70 +422,74 @@ export default function PlayPaste() {
                 {activeSubTab === 'nuevo-paste' && (
                     <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                         <form onSubmit={handleSavePaste} className="p-6 space-y-6">
-                            {/* Tab Selector for Editor */}
-                            <div className="flex overflow-x-auto border border-[#E9ECF2] rounded-t-md">
-                                {tabs.map((tab, idx) => (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => setActiveEditorTab(idx)}
-                                        className={`px-6 py-4 text-xs font-bold uppercase transition-all whitespace-nowrap ${idx === activeEditorTab ? 'bg-[#2D2D2D] text-white' : 'bg-white text-slate-700 hover:bg-slate-50 border-r border-[#E9ECF2]'}`}
-                                    >
-                                        {tab.title || (idx === activeEditorTab ? 'Pestaña Actual' : 'Desactivado')}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="border border-slate-200 rounded-b-md p-6 space-y-4">
-                                <input
-                                    type="text"
-                                    placeholder="Título de la Pestaña"
-                                    value={tabs[activeEditorTab].title}
-                                    onChange={(e) => handleTabChange(activeEditorTab, 'title', e.target.value)}
-                                    className="w-full p-3 border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-[#4864D1]"
-                                />
-
-                                <div className="border border-slate-200 rounded overflow-hidden">
-                                    {/* Rich Text Toolbar Mockup */}
-                                    <div className="bg-[#F8F9FA] border-b border-slate-200 p-2 flex flex-wrap gap-1">
-                                        {RICH_TEXT_BUTTONS.map((btn, idx) => {
-                                            const Icon = btn.icon;
-                                            return (
-                                                <button key={idx} type="button" className="p-2 hover:bg-slate-200 rounded transition-colors" title={btn.label}>
-                                                    <Icon className="w-4 h-4 text-slate-600" />
-                                                </button>
-                                            );
-                                        })}
-                                        <div className="w-[1px] h-6 bg-slate-300 mx-1 self-center" />
-                                        <select className="bg-transparent text-xs text-slate-600 p-1 border border-slate-300 rounded">
-                                            <option>Fuente</option>
-                                        </select>
-                                        <select className="bg-transparent text-xs text-slate-600 p-1 border border-slate-300 rounded">
-                                            <option>Tamaño</option>
-                                        </select>
-                                        <div className="flex gap-1 ml-auto">
-                                            <button type="button" className="p-2 hover:bg-slate-200 rounded"><Maximize2 className="w-4 h-4 text-slate-600" /></button>
-                                        </div>
-                                    </div>
-
-                                    <textarea
-                                        placeholder="Escribe el contenido aquí..."
-                                        value={tabs[activeEditorTab].content}
-                                        onChange={(e) => handleTabChange(activeEditorTab, 'content', e.target.value)}
-                                        className="w-full h-80 p-4 focus:outline-none resize-none"
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 uppercase tracking-tight">Título Principal del Paste:</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre de este Paste (ej: APK MOD BitLife)"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="w-full p-3 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#4864D1]/20 font-medium"
                                     />
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700 uppercase tracking-tight">Título Principal del Paste:</label>
-                                <input
-                                    type="text"
-                                    placeholder="Nombre de este Paste (ej: APK MOD BitLife)"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full p-3 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#4864D1]/20 font-medium"
-                                />
+                                <div className="space-y-4">
+                                    {/* Tab Selector for Editor */}
+                                    <div className="flex overflow-x-auto border border-[#E9ECF2] rounded-t-md">
+                                        {tabs.map((tab, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setActiveEditorTab(idx)}
+                                                className={`px-6 py-4 text-xs font-bold uppercase transition-all whitespace-nowrap ${idx === activeEditorTab ? 'bg-[#2D2D2D] text-white' : 'bg-white text-slate-700 hover:bg-slate-50 border-r border-[#E9ECF2]'}`}
+                                            >
+                                                {tab.title || (idx === activeEditorTab ? 'Pestaña Actual' : 'Desactivado')}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="border border-slate-200 rounded-b-md p-6 space-y-4">
+                                        <input
+                                            type="text"
+                                            placeholder="Título de la Pestaña"
+                                            value={tabs[activeEditorTab].title}
+                                            onChange={(e) => handleTabChange(activeEditorTab, 'title', e.target.value)}
+                                            className="w-full p-3 border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-[#4864D1]"
+                                        />
+
+                                        <div className="border border-slate-200 rounded overflow-hidden">
+                                            {/* Rich Text Toolbar Mockup */}
+                                            <div className="bg-[#F8F9FA] border-b border-slate-200 p-2 flex flex-wrap gap-1">
+                                                {RICH_TEXT_BUTTONS.map((btn, idx) => {
+                                                    const Icon = btn.icon;
+                                                    return (
+                                                        <button key={idx} type="button" className="p-2 hover:bg-slate-200 rounded transition-colors" title={btn.label}>
+                                                            <Icon className="w-4 h-4 text-slate-600" />
+                                                        </button>
+                                                    );
+                                                })}
+                                                <div className="w-[1px] h-6 bg-slate-300 mx-1 self-center" />
+                                                <select className="bg-transparent text-xs text-slate-600 p-1 border border-slate-300 rounded">
+                                                    <option>Fuente</option>
+                                                </select>
+                                                <select className="bg-transparent text-xs text-slate-600 p-1 border border-slate-300 rounded">
+                                                    <option>Tamaño</option>
+                                                </select>
+                                                <div className="flex gap-1 ml-auto">
+                                                    <button type="button" className="p-2 hover:bg-slate-200 rounded"><Maximize2 className="w-4 h-4 text-slate-600" /></button>
+                                                </div>
+                                            </div>
+
+                                            <textarea
+                                                placeholder="Escribe el contenido aquí..."
+                                                value={tabs[activeEditorTab].content}
+                                                onChange={(e) => handleTabChange(activeEditorTab, 'content', e.target.value)}
+                                                className="w-full h-80 p-4 focus:outline-none resize-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
