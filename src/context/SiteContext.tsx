@@ -37,6 +37,15 @@ const DEFAULT_SETTINGS: SiteSettings = {
             width: 728,
             height: 90,
             active: false
+        },
+        'paste_view_bottom': {
+            id: 'paste_view_bottom',
+            name: 'Paste View Bottom Banner',
+            type: 'zone',
+            value: '',
+            width: 728,
+            height: 90,
+            active: false
         }
     },
     homeHero: { title: 'Welcome to Paste Inyector', subtitle: 'Public paste for community content' },

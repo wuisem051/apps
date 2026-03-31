@@ -45,7 +45,9 @@ const AdBanner: React.FC<AdBannerProps> = ({
 
         const invokeScript = document.createElement('script');
         invokeScript.type = 'text/javascript';
-        invokeScript.src = `//www.topcreativeformat.com/${config.value}/invoke.js`;
+        // Use standard banner domain for identified banner sizes, otherwise fallback to topcreative
+        const useBannerDomain = (config.width === 728 && config.height === 90) || (config.width === 300 && config.height === 250);
+        invokeScript.src = `//www.${useBannerDomain ? 'profitabledisplaynetwork' : 'topcreativeformat'}.com/${config.value}/invoke.js`;
         invokeScript.async = true;
         container.appendChild(invokeScript);
       } catch (e) {
@@ -75,20 +77,24 @@ const AdBanner: React.FC<AdBannerProps> = ({
   if (!config || !config.active) return null;
 
   return (
-    <div className={`flex justify-center items-center my-4 ${className}`}>
+    <div className={`flex justify-center items-center my-4 w-full ${className}`}>
       <div
-        style={{ width: `${config.width || fallbackWidth}px`, height: `${config.height || fallbackHeight}px` }}
-        className="bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden relative"
+        style={{
+          width: '100%',
+          maxWidth: `${config.width || fallbackWidth}px`,
+          height: `${config.height || fallbackHeight}px`,
+          minHeight: '50px'
+        }}
+        className="bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden relative rounded-lg shadow-inner"
       >
-        {/* Placeholder - Managed by React */}
-        {!config.value && (
-          <div className="text-slate-400 text-xs text-center p-2 z-0">
-            Ad Space<br />({placementId})
-          </div>
-        )}
+        {/* Visible placeholder when active to help admin verify it's there */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-20">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Publicidad</div>
+          <div className="text-[8px] font-bold text-slate-300">({placementId})</div>
+        </div>
 
-        {/* Ad Container - Managed manually by Script, isolated from React children */}
-        <div ref={adRef} className="absolute inset-0 z-10" />
+        {/* Ad Container - Script will inject content here */}
+        <div ref={adRef} className="absolute inset-0 z-10 flex items-center justify-center bg-transparent" />
       </div>
     </div>
   );

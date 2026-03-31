@@ -144,6 +144,9 @@ export default function PasteView() {
                                 Reportar
                             </button>
                         </div>
+
+                        {/* Ad Space Bottom (NEW) */}
+                        <AdBanner placementId="paste_view_bottom" className="mt-8" />
                     </div>
                 </div>
             </main>
