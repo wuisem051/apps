@@ -121,12 +121,57 @@ export default function PasteView() {
                         </div>
 
                         {/* Paste Content Wrapper */}
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 min-h-[300px] shadow-inner relative group">
-                            {/* Content Rendered as is - In production we should use DOMPurify/dangerouslySetInnerHTML if HTML is allowed */}
-                            <div className="prose prose-slate max-w-none">
-                                <p className="whitespace-pre-wrap font-medium text-slate-800 leading-relaxed text-lg italic">
-                                    {paste.tabs[activeTab]?.content}
-                                </p>
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 min-h-[300px] shadow-inner relative group content-render">
+                            <div className="prose prose-slate max-w-none text-slate-800 leading-relaxed text-lg whitespace-pre-wrap">
+                                {(() => {
+                                    const content = paste.tabs[activeTab]?.content || '';
+
+                                    // Helper function to linkify text and handle BBCode
+                                    const parseBBCodeAndLinks = (text: string) => {
+                                        // 1. Handle URLs (Linkify)
+                                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+                                        // 2. Handle BBCode Tags
+                                        let html = text
+                                            // Escape HTML to prevent XSS
+                                            .replace(/&/g, "&amp;")
+                                            .replace(/</g, "&lt;")
+                                            .replace(/>/g, "&gt;")
+                                            .replace(/"/g, "&quot;")
+                                            .replace(/'/g, "&#039;")
+                                            // Bold
+                                            .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
+                                            // Italic
+                                            .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
+                                            // Underline
+                                            .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
+                                            // Alignments
+                                            .replace(/\[center\](.*?)\[\/center\]/gi, '<div class="text-center">$1</div>')
+                                            .replace(/\[right\](.*?)\[\/right\]/gi, '<div class="text-right">$1</div>')
+                                            .replace(/\[left\](.*?)\[\/left\]/gi, '<div class="text-left">$1</div>')
+                                            // Quote
+                                            .replace(/\[quote\](.*?)\[\/quote\]/gi, '<blockquote class="border-l-4 border-slate-300 pl-4 py-1 italic my-4 bg-slate-100/50 rounded-r">$1</blockquote>')
+                                            // List
+                                            .replace(/\[list\]([\s\S]*?)\[\/list\]/gi, '<ul class="list-disc ml-6 my-4">$1</ul>')
+                                            .replace(/\[\*\](.*?)(?=\[|\n|$)/gi, '<li class="my-1">$1</li>')
+                                            // URL tags [url]https://...[/url]
+                                            .replace(/\[url\](https?:\/\/.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#4864D1] hover:underline font-bold">$1</a>')
+                                            // URL tags [url=url]text[/url]
+                                            .replace(/\[url=(https?:\/\/.*?)\](.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#4864D1] hover:underline font-bold">$2</a>')
+                                            // Image tags
+                                            .replace(/\[img\](https?:\/\/.*?)\[\/img\]/gi, '<img src="$1" class="max-w-full rounded-lg shadow-md my-4 h-auto block mx-auto" />')
+                                            // Video tags (simple iframe for YouTube if possible)
+                                            .replace(/\[video\](https?:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+).*?)\[\/video\]/gi, '<iframe class="w-full aspect-video rounded-xl shadow-lg my-6" src="https://www.youtube.com/embed/$2" frameborder="0" allowfullscreen></iframe>')
+                                            .replace(/\[video\](https?:\/\/youtu\.be\/([a-zA-Z0-9_-]+).*?)\[\/video\]/gi, '<iframe class="w-full aspect-video rounded-xl shadow-lg my-6" src="https://www.youtube.com/embed/$2" frameborder="0" allowfullscreen></iframe>');
+
+                                        // Auto-Linkify remaining plain URLs that aren't already in href="..."
+                                        html = html.replace(/(?<!href=")(?<!src=")(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#4864D1] hover:underline font-bold">$1</a>');
+
+                                        return html;
+                                    };
+
+                                    return <div dangerouslySetInnerHTML={{ __html: parseBBCodeAndLinks(content) }} />;
+                                })()}
                             </div>
                         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import {
@@ -90,6 +90,42 @@ export default function PlayPaste() {
 
     const { user, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
+    const editorRef = useRef<HTMLTextAreaElement>(null);
+
+    const applyFormat = (type: string) => {
+        if (!editorRef.current) return;
+        const textarea = editorRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+
+        let before = '';
+        let after = '';
+
+        switch (type) {
+            case 'Bold': before = '[b]'; after = '[/b]'; break;
+            case 'Italic': before = '[i]'; after = '[/i]'; break;
+            case 'Underline': before = '[u]'; after = '[/u]'; break;
+            case 'Link': before = '[url]'; after = '[/url]'; break;
+            case 'Image': before = '[img]'; after = '[/img]'; break;
+            case 'Quote': before = '[quote]'; after = '[/quote]'; break;
+            case 'List': before = '[list]\n[*] '; after = '\n[/list]'; break;
+            case 'Align Left': before = '[left]'; after = '[/left]'; break;
+            case 'Align Center': before = '[center]'; after = '[/center]'; break;
+            case 'Align Right': before = '[right]'; after = '[/right]'; break;
+            case 'Video': before = '[video]'; after = '[/video]'; break;
+            default: return;
+        }
+
+        const newText = text.substring(0, start) + before + selected + after + text.substring(end);
+        handleTabChange(activeEditorTab, 'content', newText);
+
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, end + before.length);
+        }, 0);
+    };
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -467,7 +503,13 @@ export default function PlayPaste() {
                                                 {RICH_TEXT_BUTTONS.map((btn, idx) => {
                                                     const Icon = btn.icon;
                                                     return (
-                                                        <button key={idx} type="button" className="p-2 hover:bg-slate-200 rounded transition-colors" title={btn.label}>
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            onClick={() => applyFormat(btn.label)}
+                                                            className="p-2 hover:bg-slate-200 rounded transition-colors"
+                                                            title={btn.label}
+                                                        >
                                                             <Icon className="w-4 h-4 text-slate-600" />
                                                         </button>
                                                     );
@@ -485,6 +527,7 @@ export default function PlayPaste() {
                                             </div>
 
                                             <textarea
+                                                ref={editorRef}
                                                 placeholder="Escribe el contenido aquí..."
                                                 value={tabs[activeEditorTab].content}
                                                 onChange={(e) => handleTabChange(activeEditorTab, 'content', e.target.value)}
