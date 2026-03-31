@@ -404,17 +404,18 @@ export default function PlayPaste() {
                                                 <input type="checkbox" className="rounded" />
                                             </th>
                                             <th className="p-3">Título</th>
+                                            <th className="p-3 text-center">Vistas</th>
                                             <th className="p-3 text-center">Opciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {loading ? (
                                             <tr>
-                                                <td colSpan={3} className="p-8 text-center text-slate-400">Cargando...</td>
+                                                <td colSpan={4} className="p-8 text-center text-slate-400">Cargando...</td>
                                             </tr>
                                         ) : filteredPastes.length === 0 ? (
                                             <tr>
-                                                <td colSpan={3} className="p-8 text-center text-slate-400 font-medium">No se encontraron pastes</td>
+                                                <td colSpan={4} className="p-8 text-center text-slate-400 font-medium">No se encontraron pastes</td>
                                             </tr>
                                         ) : (
                                             filteredPastes.map((p) => (
@@ -425,10 +426,15 @@ export default function PlayPaste() {
                                                     <td className="p-3">
                                                         <button
                                                             onClick={() => navigate(`/v/${p.id}`)}
-                                                            className="text-[#4864D1] hover:underline font-medium text-sm text-left"
+                                                            className="text-[#4864D1] hover:underline font-medium text-sm text-left line-clamp-1"
                                                         >
                                                             {p.title}
                                                         </button>
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-[10px] font-bold">
+                                                            {p.views || 0}
+                                                        </span>
                                                     </td>
                                                     <td className="p-3">
                                                         <div className="flex justify-center gap-2">

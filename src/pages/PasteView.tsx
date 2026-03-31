@@ -109,13 +109,13 @@ export default function PasteView() {
                                         onClick={() => setActiveTab(idx)}
                                         className={`px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-105 active:scale-95 ${activeTab === idx ? 'bg-[#2D2D2D] text-white shadow-lg' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
                                     >
-                                        {tab.title}
+                                        {tab.title || `Pestaña ${idx + 1}`}
                                     </button>
                                 ))}
                             </div>
 
                             <div className="bg-[#EF4444] text-white w-14 h-14 rounded-full flex flex-col items-center justify-center shadow-lg transform hover:rotate-12 transition-all">
-                                <span className="text-lg font-black leading-tight">{paste.views + 1}</span>
+                                <span className="text-lg font-black leading-tight">{(paste.views || 0) + 1}</span>
                                 <span className="text-[10px] font-bold uppercase -mt-1 tracking-tighter">vistas</span>
                             </div>
                         </div>
