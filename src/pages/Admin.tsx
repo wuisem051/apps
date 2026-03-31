@@ -1058,6 +1058,47 @@ export default function Admin() {
                 </h3>
                 <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{pastes.length} Total Pastes</span>
               </div>
+
+              {/* Paste Monetization Block (Added for convenience) */}
+              <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#4864D1] rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-800 uppercase tracking-tight text-sm mb-1">Publicidad en Pastes</h3>
+                    <p className="text-xs text-slate-500 font-medium">Configura el banner que verán los usuarios al abrir cualquier enlace de paste.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      const p = adPlacements?.['paste_view_top'];
+                      if (p) {
+                        setEditingPlacementId('paste_view_top');
+                        setPlacementForm({ ...p });
+                      }
+                    }}
+                    className="bg-[#4864D1] hover:bg-[#3B54B4] text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#4864D1]/20 transform hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    Configurar Banner
+                  </button>
+                  <button
+                    onClick={() => {
+                      const p = adPlacements?.['paste_view_top'];
+                      if (p) {
+                        const active = !p.active;
+                        updateAdPlacement('paste_view_top', { active });
+                      }
+                    }}
+                    className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all ${adPlacements?.['paste_view_top']?.active ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-slate-200 text-slate-400'}`}
+                  >
+                    {adPlacements?.['paste_view_top']?.active ? 'Activo' : 'Pausado'}
+                  </button>
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
