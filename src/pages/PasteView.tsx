@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { Edit, Flag, TrendingUp, ChevronLeft } from 'lucide-react';
+import AdBanner from '../components/AdBanner';
 
 interface PasteTab {
     title: string;
@@ -82,8 +83,10 @@ export default function PasteView() {
                     className="flex items-center gap-2 text-slate-500 hover:text-[#4864D1] mb-8 font-medium transition-colors"
                 >
                     <ChevronLeft className="w-5 h-5" />
-                    Volver
                 </button>
+
+                {/* Ad Space Top (Image 2) */}
+                <AdBanner placementId="paste_view_top" className="mb-4" />
 
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 animate-in fade-in slide-in-from-bottom-5 duration-500">
                     {/* Paste Title */}

@@ -24,7 +24,10 @@ import {
     AlignRight,
     Maximize2,
     Save,
-    Trash
+    Trash,
+    Lock,
+    DollarSign,
+    Rocket
 } from 'lucide-react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, Timestamp, getDoc, where } from 'firebase/firestore';
@@ -522,6 +525,60 @@ export default function PlayPaste() {
                         <p className="text-slate-500">No hay contenido en esta sección por el momento.</p>
                     </div>
                 )}
+
+                {/* Features Section (Image 1) */}
+                <div className="mt-16 bg-[#F8FAFC] rounded-3xl p-12 border border-slate-200 shadow-sm overflow-hidden relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-center relative z-10">
+                        <div className="space-y-4">
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-md rotate-3 flex items-center justify-center mx-auto mb-6 transform hover:-rotate-6 transition-transform">
+                                <Clipboard className="w-8 h-8 text-[#4864D1]" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter border-b-4 border-[#4864D1] inline-block pb-1">Crea</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                Contamos con varias herramientas para personalizar tus pastes de manera rápida y creativa.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-md -rotate-3 flex items-center justify-center mx-auto mb-6 transform hover:rotate-6 transition-transform">
+                                <Lock className="w-8 h-8 text-red-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter border-b-4 border-[#4864D1] inline-block pb-1">Protege</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                Protege tus pastes con captcha y contraseña, los robots no podrán ver tus publicaciones.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-md rotate-6 flex items-center justify-center mx-auto mb-6 transform hover:-rotate-3 transition-transform">
+                                <DollarSign className="w-8 h-8 text-orange-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter border-b-4 border-[#4864D1] inline-block pb-1">Acorta y gana</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                Acorta Fácil y Rápidamente tus enlaces y gana dinero con el acortador de tu preferencia, además podrás cambiarlo cuando quieras automáticamente.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-md -rotate-6 flex items-center justify-center mx-auto mb-6 transform hover:rotate-12 transition-transform">
+                                <Rocket className="w-8 h-8 text-blue-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter border-b-4 border-[#4864D1] inline-block pb-1">Comparte</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                Comparte textos, enlaces y haz que lleguen a todo el mundo de una manera segura y eficaz.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-12 flex justify-center">
+                        <button
+                            onClick={() => { setActiveSubTab('nuevo-paste'); resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-12 py-4 rounded-xl font-black uppercase text-sm tracking-[0.2em] shadow-xl shadow-orange-200 transition-all transform hover:scale-105 active:scale-95"
+                        >
+                            ¡Comienza ahora!
+                        </button>
+                    </div>
+                </div>
             </main>
 
             <Footer />

@@ -28,7 +28,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
     siteName: 'PASTE INYECTOR',
     footerText: '© 2026 PASTE INYECTOR. All rights reserved.',
     downloadTimer: 15,
-    adPlacements: {},
+    adPlacements: {
+        'paste_view_top': {
+            id: 'paste_view_top',
+            name: 'Paste View Top Banner',
+            type: 'zone',
+            value: '',
+            width: 728,
+            height: 90,
+            active: false
+        }
+    },
     homeHero: { title: 'Welcome to Paste Inyector', subtitle: 'Public paste for community content' },
     footerPages: [],
     language: 'es',
@@ -47,7 +57,12 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const globalRef = doc(db, 'settings', 'global');
             const unsub = onSnapshot(globalRef, (snap) => {
-                if (snap.exists()) setSettings(snap.data() as SiteSettings);
+                if (snap.exists()) {
+                    const data = snap.data() as SiteSettings;
+                    // Ensure default placements exist if not in Firestore
+                    const adPlacements = { ...DEFAULT_SETTINGS.adPlacements, ...(data.adPlacements || {}) };
+                    setSettings({ ...data, adPlacements });
+                }
                 setIsLoading(false);
             }, (err) => {
                 console.warn("Firestore access error in SiteProvider:", err);
@@ -65,8 +80,13 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setDoc(globalRef, { ...settings, ...s }, { merge: true });
     };
 
+    const updateAdPlacement = async (id: string, ad: Partial<AdPlacement>) => {
+        const newPlacements = { ...settings.adPlacements, [id]: { ...settings.adPlacements[id], ...ad, id } };
+        await updateSettings({ adPlacements: newPlacements });
+    };
+
     return (
-        <SiteContext.Provider value={{ ...settings, updateSettings, updateAdPlacement: () => { }, isLoading }}>
+        <SiteContext.Provider value={{ ...settings, updateSettings, updateAdPlacement, isLoading }}>
             {children}
         </SiteContext.Provider>
     );
